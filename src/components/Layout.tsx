@@ -42,7 +42,7 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   const navItems = [
-    { path: "/", label: "Cuestionarios", icon: <ClipboardList className="h-5 w-5" /> },
+    { path: "/", label: "Cuestionario", icon: <ClipboardList className="h-5 w-5" /> },
     { path: "/resultados", label: "Mis Resultados", icon: <BarChart className="h-5 w-5" /> },
   ];
 
