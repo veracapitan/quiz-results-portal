@@ -52,9 +52,11 @@ export default function Layout({ children }: LayoutProps) {
       <header className="sticky top-0 z-50 w-full border-b border-softGreen-100 bg-white/80 backdrop-blur-md">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link to="/" className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-full bg-softGreen-400 flex items-center justify-center">
-              <span className="text-white font-semibold">V</span>
-            </div>
+            <img 
+              src="/lovable-uploads/59bd76d6-1b20-4a4b-9b5c-1ac5940e6f87.png" 
+              alt="Vitalytics Logo" 
+              className="h-8 w-8"
+            />
             <span className="font-medium text-foreground">Vitalytics</span>
           </Link>
 
