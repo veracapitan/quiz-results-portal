@@ -53,9 +53,9 @@ export default function Layout({ children }: LayoutProps) {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link to="/" className="flex items-center space-x-2">
             <div className="h-8 w-8 rounded-full bg-softGreen-400 flex items-center justify-center">
-              <span className="text-white font-semibold">Q</span>
+              <span className="text-white font-semibold">V</span>
             </div>
-            <span className="font-medium text-foreground">QuizApp</span>
+            <span className="font-medium text-foreground">Vitalytics</span>
           </Link>
 
           {/* Desktop Navigation */}

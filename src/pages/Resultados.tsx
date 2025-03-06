@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle, Award, BarChart, Calendar, Clock, Info, ChevronRight } from 'lucide-react';
@@ -198,7 +197,7 @@ const Resultados = () => {
                       <span>Puntuación</span>
                       <span className="font-medium">{result.score}%</span>
                     </div>
-                    <Progress value={result.score} className="h-2 bg-gray-100" indicatorClassName={getProgressColor(result.score)} />
+                    <Progress value={result.score} className="h-2 w-full bg-softGreen-100" />
                   </div>
                 </div>
                 
