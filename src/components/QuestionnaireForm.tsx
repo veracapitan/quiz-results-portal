@@ -8,14 +8,25 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
 
 const itchingAreas = [
   "Cabeza", "Cara", "Cuello", "Brazos", "Manos", 
   "Pecho", "Espalda", "Abdomen", "Piernas", "Pies"
 ];
 
+interface QuestionnaireData {
+  id: string;
+  date: string;
+  itchLevel: number;
+  selectedAreas: string[];
+  imageCount: number;
+  userId: string;
+}
+
 const QuestionnaireForm = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [itchLevel, setItchLevel] = useState(0);
   const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
   const [images, setImages] = useState<File[]>([]);
@@ -67,8 +78,39 @@ const QuestionnaireForm = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Here you would typically send the data to your backend
-    // For now, we'll just show a success message
+    if (!user) {
+      toast({
+        title: "Error al enviar",
+        description: "Debes iniciar sesión para enviar el cuestionario.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Create new questionnaire data
+    const newQuestionnaire: QuestionnaireData = {
+      id: `q-${Date.now()}`,
+      date: new Date().toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }),
+      itchLevel,
+      selectedAreas,
+      imageCount: images.length,
+      userId: user.id,
+    };
+    
+    // Get existing questionnaires from localStorage
+    const storedQuestionnaires = localStorage.getItem('vitalytics-questionnaires');
+    const questionnaires: QuestionnaireData[] = storedQuestionnaires 
+      ? JSON.parse(storedQuestionnaires) 
+      : [];
+    
+    // Add new questionnaire and save to localStorage
+    questionnaires.push(newQuestionnaire);
+    localStorage.setItem('vitalytics-questionnaires', JSON.stringify(questionnaires));
+    
     toast({
       title: "Cuestionario enviado",
       description: "Gracias por completar el cuestionario. Un profesional revisará tu información.",

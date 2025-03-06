@@ -2,8 +2,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ClipboardList, BarChart, Menu, X } from 'lucide-react';
+import { ClipboardList, BarChart, Menu, X, LogOut, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -13,6 +21,7 @@ export default function Layout({ children }: LayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const [mounted, setMounted] = useState(false);
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -61,23 +70,42 @@ export default function Layout({ children }: LayoutProps) {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-4">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  "flex items-center space-x-1 px-4 py-2 rounded-full text-sm font-medium transition-colors",
-                  location.pathname === item.path
-                    ? "bg-softGreen-100 text-softGreen-700"
-                    : "text-muted-foreground hover:bg-softGreen-50 hover:text-softGreen-600"
-                )}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </Link>
-            ))}
-          </nav>
+          <div className="hidden md:flex items-center space-x-4">
+            <nav className="flex space-x-2 mr-4">
+              {navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    "flex items-center space-x-1 px-4 py-2 rounded-full text-sm font-medium transition-colors",
+                    location.pathname === item.path
+                      ? "bg-softGreen-100 text-softGreen-700"
+                      : "text-muted-foreground hover:bg-softGreen-50 hover:text-softGreen-600"
+                  )}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </nav>
+
+            {user && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="rounded-full">
+                    <User className="h-4 w-4 mr-2" />
+                    <span className="truncate max-w-[100px]">{user.name}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={logout} className="cursor-pointer">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    <span>Cerrar sesión</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
 
           {/* Mobile Menu Toggle */}
           <button
@@ -119,6 +147,21 @@ export default function Layout({ children }: LayoutProps) {
                 <span>{item.label}</span>
               </Link>
             ))}
+
+            {user && (
+              <div 
+                className="mt-4 pt-4 border-t border-softGreen-100"
+                onClick={logout}
+              >
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+                >
+                  <LogOut className="h-5 w-5 mr-2" />
+                  <span>Cerrar sesión</span>
+                </Button>
+              </div>
+            )}
           </motion.nav>
         </div>
       )}
