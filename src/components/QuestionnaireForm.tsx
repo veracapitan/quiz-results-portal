@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Paperclip, Send, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -31,6 +31,25 @@ const QuestionnaireForm = () => {
   const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
   const [images, setImages] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
+  const [hasSubmittedToday, setHasSubmittedToday] = useState(false);
+
+  // Check if user has already submitted today when component mounts
+  useEffect(() => {
+    if (user) {
+      const storedQuestionnaires = localStorage.getItem('vitalytics-questionnaires');
+      const questionnaires: QuestionnaireData[] = storedQuestionnaires 
+        ? JSON.parse(storedQuestionnaires) 
+        : [];
+
+      const today = new Date().setHours(0, 0, 0, 0);
+      const submitted = questionnaires.some(q => {
+        const submissionDate = new Date(q.date).setHours(0, 0, 0, 0);
+        return q.userId === user.uid && submissionDate === today;
+      });
+
+      setHasSubmittedToday(submitted);
+    }
+  }, [user]);
 
   const handleAreaToggle = (area: string) => {
     setSelectedAreas(
@@ -97,7 +116,7 @@ const QuestionnaireForm = () => {
     const today = new Date().setHours(0, 0, 0, 0);
     const hasSubmittedToday = questionnaires.some(q => {
       const submissionDate = new Date(q.date).setHours(0, 0, 0, 0);
-      return q.userId === user.id && submissionDate === today;
+      return q.userId === user.uid && submissionDate === today;
     });
 
     if (hasSubmittedToday) {
@@ -120,7 +139,7 @@ const QuestionnaireForm = () => {
       itchLevel,
       selectedAreas,
       imageCount: images.length,
-      userId: user.id,
+      userId: user.uid,
     };
     
     // Add new questionnaire and save to localStorage
@@ -147,6 +166,13 @@ const QuestionnaireForm = () => {
       className="max-w-2xl mx-auto glass-card p-6 rounded-xl"
     >
       <form onSubmit={handleSubmit} className="space-y-8">
+        {hasSubmittedToday && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <p className="text-yellow-800 text-sm">
+              Ya has enviado un cuestionario hoy. Por favor, vuelve mañana para enviar otro.
+            </p>
+          </div>
+        )}
         {/* Itching Level Question */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">¿Qué nivel de picor sientes?</h3>
@@ -235,13 +261,19 @@ const QuestionnaireForm = () => {
           </div>
         </div>
 
-        <Button 
-          type="submit" 
-          className="w-full bg-softGreen-500 hover:bg-softGreen-600 py-6 text-white"
-        >
-          <Send className="h-5 w-5 mr-2" />
-          Enviar cuestionario
-        </Button>
+          <Button 
+            type="submit" 
+            className={cn(
+              "w-full bg-gradient-to-r text-white py-6 shadow-lg transition-all duration-200 hover:shadow-xl",
+              hasSubmittedToday
+                ? "from-gray-400 to-gray-500 cursor-not-allowed"
+                : "from-softGreen-500 to-softGreen-600 hover:from-softGreen-600 hover:to-softGreen-700 shadow-softGreen-500/25 hover:shadow-softGreen-500/30"
+            )}
+            disabled={hasSubmittedToday}
+          >
+            <Send className="h-5 w-5 mr-2" />
+            {hasSubmittedToday ? "Ya enviado hoy" : "Enviar cuestionario"}
+          </Button>
       </form>
     </motion.div>
   );

@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Navigate } from 'react-router-dom';
 import { CheckCircle, Award, BarChart, Calendar, Clock, Info, ChevronRight, Activity, Heart, Thermometer, Zap, Pill, FileText } from 'lucide-react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -144,6 +145,11 @@ const Resultados = () => {
   const { user } = useAuth();
   const [selectedResultId, setSelectedResultId] = useState<string | null>(null);
   
+  // Redirect if not a patient
+  if (!user || user.role !== 'patient') {
+    return <Navigate to="/" />;
+  }
+  
   // Get questionnaires from localStorage
   const storedQuestionnaires = localStorage.getItem('vitalytics-questionnaires');
   const allQuestionnaires: QuestionnaireData[] = storedQuestionnaires 
@@ -151,12 +157,10 @@ const Resultados = () => {
     : [];
   
   // Filter questionnaires for the current user
-  const userQuestionnaires = user 
-    ? allQuestionnaires.filter(q => q.userId === user.id)
-    : [];
+  const userQuestionnaires = allQuestionnaires.filter(q => q.userId === user.uid);
   
   // Get patient data (in a real app, this would come from an API)
-  const userPatientData = mockPatientData;
+  const userPatientData = mockPatientData.filter(data => data.userId === user.uid);
   
   // Find the selected result
   const selectedResult = userPatientData.find(r => r.id === selectedResultId);

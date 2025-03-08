@@ -21,26 +21,26 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let isMounted = true;
-
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (!isMounted) return;
-
       try {
         setError(null);
         if (firebaseUser) {
+          const role = localStorage.getItem(`user_role_${firebaseUser.uid}`) as 'doctor' | 'patient' || 'patient';
+          const name = localStorage.getItem(`user_name_${firebaseUser.uid}`) || '';
+          const surname = localStorage.getItem(`user_surname_${firebaseUser.uid}`) || '';
+          
           setUser({
             uid: firebaseUser.uid,
             email: firebaseUser.email || '',
-            role: localStorage.getItem(`user_role_${firebaseUser.uid}`) as 'doctor' | 'patient' || 'patient',
-            name: localStorage.getItem(`user_name_${firebaseUser.uid}`) || '',
-            surname: localStorage.getItem(`user_surname_${firebaseUser.uid}`) || ''
+            role,
+            name,
+            surname
           });
         } else {
           setUser(null);
@@ -50,16 +50,11 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setError('Error loading user data. Please try again.');
       } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+        setIsLoading(false);
       }
     });
 
-    return () => {
-      isMounted = false;
-      unsubscribe();
-    };
+    return () => unsubscribe();
   }, []);
 
   const register = async (name: string, surname: string, email: string, password: string, role: 'doctor' | 'patient') => {
@@ -67,7 +62,6 @@ export const AuthProvider = ({ children }) => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const userId = userCredential.user.uid;
       
-      // Store user data in localStorage
       localStorage.setItem(`user_role_${userId}`, role);
       localStorage.setItem(`user_name_${userId}`, name);
       localStorage.setItem(`user_surname_${userId}`, surname);
@@ -92,13 +86,16 @@ export const AuthProvider = ({ children }) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const userId = userCredential.user.uid;
+      const role = localStorage.getItem(`user_role_${userId}`) as 'doctor' | 'patient' || 'patient';
+      const name = localStorage.getItem(`user_name_${userId}`) || '';
+      const surname = localStorage.getItem(`user_surname_${userId}`) || '';
       
       setUser({
         uid: userId,
         email: userCredential.user.email || '',
-        role: localStorage.getItem(`user_role_${userId}`) as 'doctor' | 'patient' || 'patient',
-        name: localStorage.getItem(`user_name_${userId}`) || '',
-        surname: localStorage.getItem(`user_surname_${userId}`) || ''
+        role,
+        name,
+        surname
       });
       return { success: true };
     } catch (error: any) {
@@ -131,12 +128,10 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-function useAuth() {
+export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 }
-
-export { useAuth };

@@ -7,9 +7,10 @@ import { AuthProvider } from './context/AuthContext';
 import Index from "./pages/Index";
 import Resultados from "./pages/Resultados";
 import Login from "./pages/Login";
-import Register from "./pages/Register"; // Import the Register component
+import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import DoctorResults from "./pages/DoctorResults";
 
 const queryClient = new QueryClient();
 
@@ -22,10 +23,10 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} /> {/* Add registration route */}
+            <Route path="/register" element={<Register />} />
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/resultados" element={<ProtectedRoute><Resultados /></ProtectedRoute>} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="/doctor-results" element={<ProtectedRoute><DoctorResults /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
