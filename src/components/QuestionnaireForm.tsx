@@ -86,6 +86,28 @@ const QuestionnaireForm = () => {
       });
       return;
     }
+
+    // Get existing questionnaires from localStorage
+    const storedQuestionnaires = localStorage.getItem('vitalytics-questionnaires');
+    const questionnaires: QuestionnaireData[] = storedQuestionnaires 
+      ? JSON.parse(storedQuestionnaires) 
+      : [];
+
+    // Check if user has already submitted a questionnaire today
+    const today = new Date().setHours(0, 0, 0, 0);
+    const hasSubmittedToday = questionnaires.some(q => {
+      const submissionDate = new Date(q.date).setHours(0, 0, 0, 0);
+      return q.userId === user.id && submissionDate === today;
+    });
+
+    if (hasSubmittedToday) {
+      toast({
+        title: "Límite diario alcanzado",
+        description: "Solo puedes enviar un cuestionario por día. Por favor, vuelve mañana.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     // Create new questionnaire data
     const newQuestionnaire: QuestionnaireData = {
@@ -100,12 +122,6 @@ const QuestionnaireForm = () => {
       imageCount: images.length,
       userId: user.id,
     };
-    
-    // Get existing questionnaires from localStorage
-    const storedQuestionnaires = localStorage.getItem('vitalytics-questionnaires');
-    const questionnaires: QuestionnaireData[] = storedQuestionnaires 
-      ? JSON.parse(storedQuestionnaires) 
-      : [];
     
     // Add new questionnaire and save to localStorage
     questionnaires.push(newQuestionnaire);

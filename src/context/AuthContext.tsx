@@ -1,88 +1,142 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import { auth } from '../firebaseConfig';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 
-export interface User {
-  id: string;
-  name: string;
+interface User {
+  uid: string;
   email: string;
+  role: 'doctor' | 'patient';
+  name: string;
+  surname: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => void;
-  logout: () => void;
+  register: (name: string, surname: string, email: string, password: string, role: 'doctor' | 'patient') => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
   isLoading: boolean;
+  error: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const [error, setError] = useState<string | null>(null);
 
-  // Check if user is logged in on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('vitalytics-user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    let isMounted = true;
+
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (!isMounted) return;
+
+      try {
+        setError(null);
+        if (firebaseUser) {
+          setUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email || '',
+            role: localStorage.getItem(`user_role_${firebaseUser.uid}`) as 'doctor' | 'patient' || 'patient',
+            name: localStorage.getItem(`user_name_${firebaseUser.uid}`) || '',
+            surname: localStorage.getItem(`user_surname_${firebaseUser.uid}`) || ''
+          });
+        } else {
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        setUser(null);
+        setError('Error loading user data. Please try again.');
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, []);
 
-  const login = (email: string, password: string) => {
-    // For demo purposes, we're using a mock login
-    // In a real app, you would validate credentials against a backend
-    if (email && password.length >= 6) {
-      const newUser = {
-        id: `user-${Date.now()}`,
-        name: email.split('@')[0],
-        email,
-      };
+  const register = async (name: string, surname: string, email: string, password: string, role: 'doctor' | 'patient') => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userId = userCredential.user.uid;
       
-      setUser(newUser);
-      localStorage.setItem('vitalytics-user', JSON.stringify(newUser));
+      // Store user data in localStorage
+      localStorage.setItem(`user_role_${userId}`, role);
+      localStorage.setItem(`user_name_${userId}`, name);
+      localStorage.setItem(`user_surname_${userId}`, surname);
       
-      toast({
-        title: "Inicio de sesión exitoso",
-        description: `Bienvenido, ${newUser.name}`,
-      });
-      
-      navigate('/');
-    } else {
-      toast({
-        title: "Error de inicio de sesión",
-        description: "Credenciales inválidas. La contraseña debe tener al menos 6 caracteres.",
-        variant: "destructive",
-      });
+      setUser({ uid: userId, email, role, name, surname });
+      return { success: true };
+    } catch (error: any) {
+      let errorMessage = "An error occurred during registration.";
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = "Este correo electrónico ya está registrado.";
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = "La contraseña debe tener al menos 6 caracteres.";
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = "El correo electrónico no es válido.";
+      }
+      console.error("Error registering user:", error);
+      return { success: false, error: errorMessage };
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('vitalytics-user');
-    localStorage.removeItem('vitalytics-questionnaires');
-    toast({
-      title: "Sesión cerrada",
-      description: "Has cerrado sesión correctamente",
-    });
-    navigate('/login');
+  const login = async (email: string, password: string) => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userId = userCredential.user.uid;
+      
+      setUser({
+        uid: userId,
+        email: userCredential.user.email || '',
+        role: localStorage.getItem(`user_role_${userId}`) as 'doctor' | 'patient' || 'patient',
+        name: localStorage.getItem(`user_name_${userId}`) || '',
+        surname: localStorage.getItem(`user_surname_${userId}`) || ''
+      });
+      return { success: true };
+    } catch (error: any) {
+      let errorMessage = "Error al iniciar sesión.";
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = "El correo electrónico no existe.";
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = "La contraseña es incorrecta.";
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = "Demasiados intentos fallidos. Por favor, intente más tarde.";
+      }
+      console.error("Error logging in:", error);
+      return { success: false, error: errorMessage };
+    }
   };
 
-  return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      setUser(null);
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
+
+  return ( 
+    <AuthContext.Provider value={{ user, register, login, logout, isLoading, error }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
+function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
+}
+
+export { useAuth };

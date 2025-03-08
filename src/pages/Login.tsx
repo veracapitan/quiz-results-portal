@@ -1,26 +1,39 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { Mail, Lock, LogIn } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useAuth } from '@/context/AuthContext';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../hooks/use-toast';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { user, login, isLoading } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   // If already logged in, redirect to home
   if (!isLoading && user) {
     return <Navigate to="/" />;
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(email, password);
+    const result = await login(email, password);
+    if (!result.success && result.error) {
+      toast({
+        variant: "destructive",
+        title: "Error de inicio de sesión",
+        description: result.error
+      });
+      return;
+    }
+    
+    // Redirect on successful login
+    navigate('/');
   };
 
   return (
@@ -88,8 +101,14 @@ const Login = () => {
             Iniciar Sesión
           </Button>
 
+          <Button
+            onClick={() => navigate('/register')} // Add navigation to register page
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-6 mt-4"
+          >
+            Registrarse
+          </Button>
+
           <div className="mt-4 text-center text-sm text-gray-500">
-            <p>Para demostración, utiliza cualquier correo electrónico y una contraseña de al menos 6 caracteres.</p>
           </div>
         </form>
       </motion.div>
