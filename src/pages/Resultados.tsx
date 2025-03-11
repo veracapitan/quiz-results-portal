@@ -141,6 +141,26 @@ const mockPatientData: PatientData[] = [
   },
 ];
 
+const getEncouragingMessage = (score: number) => {
+  if (score >= 80) return "¡Excelente progreso! Sigue así con tu cuidado personal.";
+  if (score >= 60) return "¡Buen trabajo! Vas por buen camino.";
+  if (score >= 40) return "Continúa con tu rutina de cuidado, ¡vas mejorando!";
+  return "Cada día es una oportunidad para mejorar tu bienestar.";
+};
+
+const getSleepQualityMessage = (score: number) => {
+  if (score >= 80) return "Tu descanso es muy bueno";
+  if (score >= 60) return "Tu descanso es adecuado";
+  if (score >= 40) return "Tu descanso es moderado";
+  return "Podemos mejorar tu descanso";
+};
+
+const getComfortLevel = (intensity: number) => {
+  if (intensity <= 3) return "Nivel de molestia bajo";
+  if (intensity <= 6) return "Nivel de molestia moderado";
+  return "Nivel de molestia significativo";
+};
+
 const Resultados = () => {
   const { user } = useAuth();
   const [selectedResultId, setSelectedResultId] = useState<string | null>(null);

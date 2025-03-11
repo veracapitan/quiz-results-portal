@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Activity, Clock, Heart, Thermometer, FileText } from 'lucide-react';
+import PatientDetailView from '@/components/PatientDetailView';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,97 @@ interface PatientSummary {
   condition: string;
   severity: number;
 }
+
+// Mock patient data with detailed information
+const mockPatientData = [
+  {
+    id: "PAT-001",
+    date: "15 de mayo, 2023",
+    userId: "user-1",
+    behavioralData: {
+      itchDuration: "4 horas diarias",
+      scratchSpeed: 85,
+      itchIntensity: 7,
+      itchFrequency: 12,
+      skinToNailVibrations: "Moderadas",
+    },
+    sleepData: {
+      posturalChanges: 28,
+      interruptions: 6,
+      qualityScore: 65,
+    },
+    physiologicalData: {
+      heartRate: 76,
+      heartRateVariability: 42,
+      skinConductance: 8.3,
+      skinTemperature: 36.7,
+    },
+    clinicalData: {
+      skinDiseaseHistory: ["Dermatitis atópica", "Eccema"],
+      previousTreatments: ["Corticosteroides tópicos", "Antihistamínicos"],
+      currentMedication: ["Cetirizina 10mg", "Loratadina 10mg"],
+      treatmentResponse: "Respuesta parcial a antihistamínicos, mejor control nocturno",
+    },
+  },
+  {
+    id: "PAT-002",
+    date: "14 de mayo, 2023",
+    userId: "user-2",
+    behavioralData: {
+      itchDuration: "2 horas diarias",
+      scratchSpeed: 60,
+      itchIntensity: 4,
+      itchFrequency: 8,
+      skinToNailVibrations: "Bajas",
+    },
+    sleepData: {
+      posturalChanges: 15,
+      interruptions: 3,
+      qualityScore: 80,
+    },
+    physiologicalData: {
+      heartRate: 72,
+      heartRateVariability: 45,
+      skinConductance: 7.5,
+      skinTemperature: 36.5,
+    },
+    clinicalData: {
+      skinDiseaseHistory: ["Eccema leve"],
+      previousTreatments: ["Hidratantes", "Antihistamínicos"],
+      currentMedication: ["Loratadina 5mg"],
+      treatmentResponse: "Buena respuesta al tratamiento actual",
+    },
+  },
+  {
+    id: "PAT-003",
+    date: "13 de mayo, 2023",
+    userId: "user-3",
+    behavioralData: {
+      itchDuration: "6 horas diarias",
+      scratchSpeed: 90,
+      itchIntensity: 8,
+      itchFrequency: 15,
+      skinToNailVibrations: "Altas",
+    },
+    sleepData: {
+      posturalChanges: 35,
+      interruptions: 8,
+      qualityScore: 45,
+    },
+    physiologicalData: {
+      heartRate: 85,
+      heartRateVariability: 35,
+      skinConductance: 9.2,
+      skinTemperature: 37.1,
+    },
+    clinicalData: {
+      skinDiseaseHistory: ["Psoriasis", "Dermatitis seborreica"],
+      previousTreatments: ["Corticosteroides", "Fototerapia"],
+      currentMedication: ["Metotrexato", "Ácido fólico"],
+      treatmentResponse: "En proceso de ajuste de medicación",
+    },
+  },
+];
 
 const mockPatients: PatientSummary[] = [
   {
@@ -59,6 +151,40 @@ const DoctorResults = () => {
   return (
     <Layout>
       <div className="space-y-8">
+        {selectedPatient && (
+          <PatientDetailView
+            patient={mockPatientData.find(p => p.id === selectedPatient.id) || {
+              id: selectedPatient.id,
+              date: selectedPatient.lastUpdate,
+              userId: "no-data",
+              behavioralData: {
+                itchDuration: "No disponible",
+                scratchSpeed: 0,
+                itchIntensity: 0,
+                itchFrequency: 0,
+                skinToNailVibrations: "No disponible",
+              },
+              sleepData: {
+                posturalChanges: 0,
+                interruptions: 0,
+                qualityScore: 0,
+              },
+              physiologicalData: {
+                heartRate: 0,
+                heartRateVariability: 0,
+                skinConductance: 0,
+                skinTemperature: 0,
+              },
+              clinicalData: {
+                skinDiseaseHistory: ["No hay historial disponible"],
+                previousTreatments: ["No hay tratamientos previos registrados"],
+                currentMedication: ["No hay medicación registrada"],
+                treatmentResponse: "No hay datos de respuesta al tratamiento disponibles",
+              },
+            }}
+            onClose={() => setSelectedPatient(null)}
+          />
+        )}
         <motion.section 
           className="text-center space-y-4 mb-12"
           initial={{ opacity: 0, y: 20 }}
