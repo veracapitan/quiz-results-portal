@@ -31,7 +31,6 @@ interface Doctor {
 interface ChatComponentProps {
   patientId?: string;
   doctorId?: string;
-<<<<<<< HEAD
   chatKey?: string;
 }
 
@@ -47,43 +46,6 @@ const ChatComponent: React.FC<ChatComponentProps> = ({ patientId, doctorId, chat
 
   useEffect(() => {
     const loadDoctors = () => {
-=======
-}
-
-const ChatComponent: React.FC<ChatComponentProps> = ({ patientId, doctorId }) => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
-  const [selectedPatient, setSelectedPatient] = useState<Doctor | null>(null);
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [patients, setPatients] = useState<Doctor[]>([]);
-
-  useEffect(() => {
-    const getRegisteredDoctors = () => {
-      if (doctorId) {
-        // Si es médico, cargar solo sus pacientes con mensajes
-        const patientKeys = Object.keys(localStorage).filter(key => 
-          key.startsWith(`chat_`) && key.includes(`_${doctorId}`)
-        );
-        
-        const patientsList: Doctor[] = [];
-        patientKeys.forEach(key => {
-          const patientUid = key.split('_')[1];
-          const name = localStorage.getItem(`user_name_${patientUid}`) || '';
-          const surname = localStorage.getItem(`user_surname_${patientUid}`) || '';
-          
-          patientsList.push({
-            id: patientUid,
-            name: `${name} ${surname}`.trim(),
-            specialty: 'Paciente',
-            avatar: '/patient-avatar.png'
-          });
-        });
-        
-        setPatients(patientsList);
-        return;
-      }
->>>>>>> 3b008e380491e6ba2d199016330fcd7fa128de4c
       const doctorsList: Doctor[] = [];
       const keys = Object.keys(localStorage);
       
@@ -108,7 +70,6 @@ const ChatComponent: React.FC<ChatComponentProps> = ({ patientId, doctorId }) =>
       
       setDoctors(doctorsList);
     };
-<<<<<<< HEAD
 
     loadDoctors();
   }, []);
@@ -200,99 +161,11 @@ const ChatComponent: React.FC<ChatComponentProps> = ({ patientId, doctorId }) =>
     );
   };
 
-=======
-    
-    getRegisteredDoctors();
-  }, []);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Cargar mensajes de localStorage cuando cambia el médico seleccionado
-  useEffect(() => {
-    if (!selectedDoctor) {
-      setMessages([]);
-      return;
-    }
-    const chatKey = user?.role === 'doctor' ? `chat_${selectedPatient?.id}_${user.uid}` : `chat_${patientId}_${selectedDoctor?.id}`;
-    const saved = localStorage.getItem(chatKey);
-    if (saved) {
-      try {
-        const parsed: (Omit<Message, 'timestamp'> & { timestamp: string })[] = JSON.parse(saved);
-        const withDates: Message[] = parsed.map(msg => ({
-          isDoctor: msg.isDoctor || false,
-          id: msg.id || Date.now().toString(),
-          content: msg.content || '',
-          senderId: msg.senderId || 'unknown',
-          conversationId: msg.conversationId || '',
-          receiverId: msg.receiverId || (user?.role === 'doctor' ? selectedPatient?.id : selectedDoctor?.id),
-          timestamp: new Date(msg.timestamp),
-        }));
-        setMessages(withDates);
-      } catch {
-        setMessages([]);
-      }
-    } else {
-      setMessages([]);
-    }
-  }, [patientId, selectedDoctor]);
-
-  // Guardar mensajes en localStorage cuando cambian
-  useEffect(() => {
-    if (!selectedDoctor) return;
-    const chatKey = user?.role === 'doctor' ? `chat_${selectedPatient?.id}_${user.uid}` : `chat_${patientId}_${selectedDoctor?.id}`;
-    localStorage.setItem(
-        chatKey,
-      JSON.stringify(
-        messages.map(msg => ({
-          ...msg,
-          // Convertimos Date a ISO para el almacenamiento
-          timestamp: msg.timestamp.toISOString(),
-        }))
-      )
-    );
-  }, [messages, patientId, selectedDoctor]);
-
-  const [attachments, setAttachments] = useState<File[]>([]);
-
-const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  if (e.target.files) {
-    setAttachments(Array.from(e.target.files));
-  }
-};
-
-const sendMessage = () => {
-  if (!newMessage.trim() && attachments.length === 0 || !selectedDoctor) return;
-
-  const msg: Message = {
-    id: Date.now().toString(),
-    content: newMessage.trim(),
-    senderId: user?.uid || 'unknown',
-    timestamp: new Date(),
-    isDoctor: user?.role === 'doctor',
-    receiverId: user?.role === 'doctor' ? selectedPatient?.id : selectedDoctor?.id,
-    conversationId: user?.role === 'doctor' ? `chat_${selectedPatient?.id}_${user.uid}` : `chat_${patientId}_${selectedDoctor?.id}`,
-    ...(attachments.length > 0 && {
-      attachment: {
-        type: 'image',
-        url: URL.createObjectURL(attachments[0]),
-        name: attachments[0].name
-      }
-    })
-  };
-
-    setMessages(prev => [...prev, msg]);
-    setNewMessage('');
-  };
-
-  // Auto-scroll al fondo
->>>>>>> 3b008e380491e6ba2d199016330fcd7fa128de4c
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   return (
-<<<<<<< HEAD
     <div className="flex flex-col h-full p-4 border rounded-lg bg-green-50">
       {!selectedDoctor && !chatKey ? (
         <div className="p-4">
@@ -309,59 +182,22 @@ const sendMessage = () => {
                     <AvatarImage src={doctor.avatar} />
                     <AvatarFallback>
                       {doctor.name
-=======
-    <div className="flex flex-col h-full p-4 border rounded-lg bg-green-100">
-      <button 
-        onClick={() => navigate(-1)}
-        className="self-start mb-4 flex items-center text-gray-600 hover:text-gray-900"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-        </svg>
-        Volver
-      </button>
-      {!selectedDoctor && !selectedPatient ? (
-        <div className="p-4">
-          <h2 className="text-xl font-bold mb-4">
-          {doctorId ? 'Tus pacientes' : 'Selecciona un médico'}
-        </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {(doctorId ? patients : doctors).map(person => (
-              <div
-                key={person.id}
-                className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50"
-                onClick={() => doctorId ? setSelectedPatient(person) : setSelectedDoctor(person)}
-              >
-                <div className="flex items-center space-x-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={person.avatar} />
-                    <AvatarFallback>
-                      {person.name
->>>>>>> 3b008e380491e6ba2d199016330fcd7fa128de4c
                         .split(' ')
                         .map(n => n[0])
                         .join('')}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-<<<<<<< HEAD
                     <h3 className="font-medium text-lg">{doctor.name}</h3>
                     <p className="text-sm text-gray-600">{doctor.specialty}</p>
-=======
-                    <h3 className="font-medium">{person.name}</h3>
-                    <p className="text-sm text-gray-500">{person.specialty}</p>
->>>>>>> 3b008e380491e6ba2d199016330fcd7fa128de4c
                   </div>
                 </div>
               </div>
             ))}
           </div>
-<<<<<<< HEAD
           {doctors.length === 0 && (
             <p className="text-center text-gray-500 mt-4">No hay médicos disponibles en este momento</p>
           )}
-=======
->>>>>>> 3b008e380491e6ba2d199016330fcd7fa128de4c
         </div>
       ) : (
         <>
@@ -373,28 +209,17 @@ const sendMessage = () => {
               ←
             </button>
             <Avatar className="h-8 w-8 mr-2">
-<<<<<<< HEAD
               <AvatarImage src={selectedDoctor?.avatar} />
               <AvatarFallback>
                 {selectedDoctor?.name
-=======
-              <AvatarImage src={selectedDoctor ? selectedDoctor.avatar : selectedPatient?.avatar} />
-              <AvatarFallback>
-                {(selectedDoctor ? selectedDoctor.name : selectedPatient?.name)
->>>>>>> 3b008e380491e6ba2d199016330fcd7fa128de4c
                   .split(' ')
                   .map(n => n[0])
                   .join('')}
               </AvatarFallback>
             </Avatar>
             <div>
-<<<<<<< HEAD
               <h3 className="font-medium">{selectedDoctor?.name}</h3>
               <p className="text-xs text-gray-500">{selectedDoctor?.specialty}</p>
-=======
-              <h3 className="font-medium">{selectedDoctor ? selectedDoctor.name : selectedPatient?.name}</h3>
-              <p className="text-xs text-gray-500">{selectedDoctor ? selectedDoctor.specialty : selectedPatient?.specialty}</p>
->>>>>>> 3b008e380491e6ba2d199016330fcd7fa128de4c
             </div>
           </div>
 
