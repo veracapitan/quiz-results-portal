@@ -47,11 +47,19 @@ interface PatientSummary {
 
 const mockPatients: PatientSummary[] = [
   {
+<<<<<<< HEAD
     id: "1747358548054",
     name: "Juan Pérez",
     lastUpdate: "2023-05-15",
     condition: "Intensidad de picor: 7/10",
     severity: 70,
+=======
+    id: "PAT-001",
+    name: "Juan Pérez",
+    lastUpdate: "2023-05-15",
+    condition: "Dermatitis atópica",
+    severity: 75,
+>>>>>>> 3b008e380491e6ba2d199016330fcd7fa128de4c
     date: '',
     userId: '',
     behavioralData: {
@@ -80,11 +88,19 @@ const mockPatients: PatientSummary[] = [
     }
   },
   {
+<<<<<<< HEAD
     id: "174734948054",
     name: "María García",
     lastUpdate: "2023-05-14",
     condition: "Intensidad de picor: 4/10",
     severity: 40,
+=======
+    id: "PAT-002",
+    name: "María García",
+    lastUpdate: "2023-05-14",
+    condition: "Eccema",
+    severity: 45,
+>>>>>>> 3b008e380491e6ba2d199016330fcd7fa128de4c
     date: '',
     userId: '',
     behavioralData: {
@@ -113,10 +129,17 @@ const mockPatients: PatientSummary[] = [
     }
   },
   {
+<<<<<<< HEAD
     id: "1343741548054",
     name: "Carlos López",
     lastUpdate: "2023-05-13",
     condition: "Intesidad de picor: 6/10",
+=======
+    id: "PAT-003",
+    name: "Carlos López",
+    lastUpdate: "2023-05-13",
+    condition: "Psoriasis",
+>>>>>>> 3b008e380491e6ba2d199016330fcd7fa128de4c
     severity: 60,
     date: '',
     userId: '',
@@ -328,6 +351,7 @@ const DoctorResults = () => {
                       size="sm" 
                       className="border" 
                       onClick={() => {
+<<<<<<< HEAD
                         if (!user || !patient.id) return;
                         
                         // Crear una clave única para el chat que incluya ambos IDs
@@ -341,6 +365,13 @@ const DoctorResults = () => {
                             chatKey: chatKey
                           }
                         });
+=======
+                        if (patient.userId) {
+                          navigate(`/chat/${patient.userId}`);
+                        } else {
+                          console.error('No se pudo iniciar el chat: userId no está definido');
+                        }
+>>>>>>> 3b008e380491e6ba2d199016330fcd7fa128de4c
                       }}
                     >
                       Chat
