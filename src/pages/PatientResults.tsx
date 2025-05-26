@@ -6,6 +6,7 @@ import PatientChart from '@/components/PatientChart';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import AppointmentForm, { AppointmentFormData } from '@/components/AppointmentForm';
+import { getQuestionnairesByUserId } from '../services/questionnaireService';
 
 interface QuestionnaireData {
   id: string;
@@ -37,13 +38,25 @@ const PatientResults = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const storedQuestionnaires = localStorage.getItem('vitalytics-questionnaires');
-        if (storedQuestionnaires && user) {
-          const allQuestionnaires: QuestionnaireData[] = JSON.parse(storedQuestionnaires);
-          const userQuestionnaires = allQuestionnaires
-            .filter(q => q.userId === user.uid)
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-          setPatientData(userQuestionnaires);
+        if (user) {
+          // Intentar obtener datos de la base de datos
+          const result = await getQuestionnairesByUserId(user.uid);
+          
+          if (result.success) {
+            setPatientData(result.questionnaires);
+          } else {
+            // Si hay un error con la base de datos, intentar con localStorage
+            const storedQuestionnaires = localStorage.getItem('vitalytics-questionnaires');
+            if (storedQuestionnaires) {
+              const allQuestionnaires: QuestionnaireData[] = JSON.parse(storedQuestionnaires);
+              const userQuestionnaires = allQuestionnaires
+                .filter(q => q.userId === user.uid)
+                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+              setPatientData(userQuestionnaires);
+            } else {
+              setPatientData([]);
+            }
+          }
         } else {
           setPatientData([]);
         }
@@ -115,11 +128,7 @@ const PatientResults = () => {
           </motion.div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">Servicios Médicos</h1>
           <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
-<<<<<<< HEAD
             Gestiona tus citas y mensajes médicos.
-=======
-            Accede a servicios médicos y comunícate con tu doctor.
->>>>>>> 3b008e380491e6ba2d199016330fcd7fa128de4c
           </p>
         </motion.section>
 
@@ -138,7 +147,6 @@ const PatientResults = () => {
                 { id: '1', name: 'Dr. Juan Pérez', specialty: 'Dermatología' },
                 { id: '2', name: 'Dra. María López', specialty: 'Cardiología' }
               ]}
-<<<<<<< HEAD
               onSuccess={() => navigate('/mis-citas')} 
               onSubmit={function (data: AppointmentFormData): void {
                 throw new Error('Function not implemented.');
@@ -147,13 +155,6 @@ const PatientResults = () => {
                 throw new Error('Function not implemented.');
               }}            
             />
-=======
-              onSuccess={() => navigate('/mis-citas')} onSubmit={function (data: AppointmentFormData): void {
-                throw new Error('Function not implemented.');
-              } } onCancel={function (): void {
-                throw new Error('Function not implemented.');
-              } }            />
->>>>>>> 3b008e380491e6ba2d199016330fcd7fa128de4c
           </motion.div>
 
           <motion.div
@@ -162,27 +163,6 @@ const PatientResults = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-<<<<<<< HEAD
-=======
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Hablar con el Médico</h3>
-            <p className="text-sm text-gray-600 mb-4">Envía un mensaje o inicia una videollamada con tu médico tratante.</p>
-            <a
-              href="https://wa.me/5215555555555"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block bg-softGreen-600 text-white px-4 py-2 rounded-lg hover:bg-softGreen-700 transition"
-            >
-              Contactar
-            </a>
-          </motion.div>
-
-          <motion.div
-            className="glass-card p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
->>>>>>> 3b008e380491e6ba2d199016330fcd7fa128de4c
             <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Enviar Mensaje</h3>
             <p className="text-sm text-gray-600 mb-4">Comunícate con tu médico mediante mensajes directos dentro de la plataforma.</p>
             <button

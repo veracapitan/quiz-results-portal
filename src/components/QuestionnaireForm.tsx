@@ -7,8 +7,9 @@ import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { X } from 'lucide-react';
+import { saveQuestionnaire, hasSubmittedToday as checkSubmittedToday } from '../services/questionnaireService';
 
-interface QuestionnaireData {
+export interface QuestionnaireData {
   id: string;
   date: string;
   intensity: number;
@@ -95,39 +96,71 @@ const QuestionnaireForm = () => {
   // Para saber si el usuario ya envió cuestionario hoy
   const [hasSubmittedToday, setHasSubmittedToday] = useState(false);
 
-  // Revisar en localStorage si el usuario ya envió un cuestionario hoy
+  // Revisar en la base de datos si el usuario ya envió un cuestionario hoy
   useEffect(() => {
-    if (user) {
-      const storedQuestionnaires = localStorage.getItem('vitalytics-questionnaires');
-      const questionnaires: QuestionnaireData[] = storedQuestionnaires 
-        ? JSON.parse(storedQuestionnaires) 
-        : [];
+    const checkSubmission = async () => {
+      if (user) {
+        try {
+          // Primero intentamos verificar en la base de datos
+          const result = await checkSubmittedToday(user.uid);
+          
+          if (result.success) {
+            setHasSubmittedToday(result.hasSubmitted);
+            
+            // Si ya ha enviado, resetear el formulario
+            if (result.hasSubmitted) {
+              resetForm();
+            }
+            return;
+          }
+          
+          // Si hay un error con la base de datos, verificar en localStorage como respaldo
+          const storedQuestionnaires = localStorage.getItem('vitalytics-questionnaires');
+          const questionnaires: QuestionnaireData[] = storedQuestionnaires 
+            ? JSON.parse(storedQuestionnaires) 
+            : [];
 
-      const today = new Date().setHours(0, 0, 0, 0);
-      const submitted = questionnaires.some(q => {
-        const submissionDate = new Date(q.date).setHours(0, 0, 0, 0);
-        return q.userId === user.uid && submissionDate === today;
-      });
+          const today = new Date().setHours(0, 0, 0, 0);
+          const submitted = questionnaires.some(q => {
+            const submissionDate = new Date(q.date).setHours(0, 0, 0, 0);
+            return q.userId === user.uid && submissionDate === today;
+          });
 
-      setHasSubmittedToday(submitted);
+          setHasSubmittedToday(submitted);
 
-      // Reset form if user has already submitted today
-      if (submitted) {
-        setCurrentPage(1);
-        setIntensity(0);
-        setSelectedAreas([]);
-        setActivitiesImpact({
-          leisureSocial: '',
-          houseworkErrands: '',
-          workSchool: ''
-        });
-        setTriggers([]);
-        setTreatmentEfficacy(0);
-        setImages([]);
-        setPreviews([]);
+          // Reset form if user has already submitted today
+          if (submitted) {
+            resetForm();
+          }
+        } catch (error) {
+          console.error('Error checking submission:', error);
+          toast({
+            title: "Error",
+            description: "Error al verificar envíos anteriores.",
+            variant: "destructive",
+          });
+        }
       }
-    }
+    };
+    
+    checkSubmission();
   }, [user]);
+
+  // Función para resetear el formulario
+  const resetForm = () => {
+    setCurrentPage(1);
+    setIntensity(0);
+    setSelectedAreas([]);
+    setActivitiesImpact({
+      leisureSocial: '',
+      houseworkErrands: '',
+      workSchool: ''
+    });
+    setTriggers([]);
+    setTreatmentEfficacy(0);
+    setImages([]);
+    setPreviews([]);
+  };
 
   // Manejo de selección de zonas de picor
   const handleAreaToggle = (area: string) => {
@@ -264,7 +297,7 @@ const QuestionnaireForm = () => {
   };
 
   // Envío final del cuestionario
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!user) {
@@ -277,8 +310,7 @@ const QuestionnaireForm = () => {
     }
 
     // Create the questionnaire object with responses
-    const newQuestionnaire: QuestionnaireData = {
-      id: `q-${Date.now()}`,
+    const newQuestionnaire: Omit<QuestionnaireData, 'id'> = {
       date: new Date().toLocaleDateString('es-ES', {
         day: 'numeric',
         month: 'long',
@@ -293,35 +325,43 @@ const QuestionnaireForm = () => {
       userId: user.uid,
     };
 
-    // Get stored questionnaires
-    const storedQuestionnaires = localStorage.getItem('vitalytics-questionnaires');
-    const questionnaires: QuestionnaireData[] = storedQuestionnaires 
-      ? JSON.parse(storedQuestionnaires) 
-      : [];
+    try {
+      // Guardar en la base de datos
+      const result = await saveQuestionnaire(newQuestionnaire);
+      
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      
+      // Como respaldo, también guardar en localStorage
+      const storedQuestionnaires = localStorage.getItem('vitalytics-questionnaires');
+      const questionnaires: QuestionnaireData[] = storedQuestionnaires 
+        ? JSON.parse(storedQuestionnaires) 
+        : [];
 
-    // Save to localStorage
-    questionnaires.push(newQuestionnaire);
-    localStorage.setItem('vitalytics-questionnaires', JSON.stringify(questionnaires));
-    
-    toast({
-      title: "Cuestionario enviado",
-      description: "Gracias por completar el cuestionario.",
-    });
-    
-    // Reiniciar el formulario
-    setCurrentPage(1);
-    setIntensity(0);
-    setSelectedAreas([]);
-    setActivitiesImpact({
-      leisureSocial: '',
-      houseworkErrands: '',
-      workSchool: ''
-    });
-    setTriggers([]);
-    setTreatmentEfficacy(0);
-    setImages([]);
-    setPreviews([]);
-    setHasSubmittedToday(true);
+      questionnaires.push({
+        ...newQuestionnaire,
+        id: result.id || `q-${Date.now()}`
+      });
+      
+      localStorage.setItem('vitalytics-questionnaires', JSON.stringify(questionnaires));
+      
+      toast({
+        title: "Cuestionario enviado",
+        description: "Gracias por completar el cuestionario.",
+      });
+      
+      // Reiniciar el formulario
+      resetForm();
+      setHasSubmittedToday(true);
+    } catch (error) {
+      console.error('Error saving questionnaire:', error);
+      toast({
+        title: "Error al enviar",
+        description: "Hubo un problema al guardar tu cuestionario. Por favor, inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Barra de progreso

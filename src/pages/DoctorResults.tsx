@@ -146,7 +146,107 @@ const mockPatients: PatientSummary[] = [
   }
 ];
 
-const getRegisteredPatients = (): PatientSummary[] => {
+import { getAllPatients } from '../services/userService';
+import { getQuestionnairesByUserId } from '../services/questionnaireService';
+
+const getRegisteredPatients = async (): Promise<PatientSummary[]> => {
+  try {
+    // Intentar obtener pacientes de la base de datos
+    const result = await getAllPatients();
+    
+    if (result.success) {
+      const patients: PatientSummary[] = [];
+      
+      // Para cada paciente, obtener sus cuestionarios
+      for (const patient of result.patients) {
+        const questionnairesResult = await getQuestionnairesByUserId(patient.id);
+        
+        if (questionnairesResult.success && questionnairesResult.questionnaires.length > 0) {
+          const latestQuestionnaire = questionnairesResult.questionnaires[0]; // El más reciente
+          
+          patients.push({
+            id: patient.id,
+            name: patient.name,
+            lastUpdate: latestQuestionnaire.date || new Date().toISOString().split('T')[0],
+            condition: `Intensidad del picor: ${latestQuestionnaire.intensity}/10`,
+            severity: latestQuestionnaire.intensity * 10,
+            date: latestQuestionnaire.date,
+            userId: patient.id,
+            behavioralData: {
+              itchDuration: '',
+              scratchSpeed: 0,
+              itchIntensity: 0,
+              itchFrequency: 0,
+              skinToNailVibrations: ''
+            },
+            sleepData: {
+              posturalChanges: 0,
+              interruptions: 0,
+              qualityScore: 0
+            },
+            physiologicalData: {
+              heartRate: 0,
+              heartRateVariability: 0,
+              skinConductance: 0,
+              skinTemperature: 0
+            },
+            clinicalData: {
+              skinDiseaseHistory: [],
+              previousTreatments: [],
+              currentMedication: [],
+              treatmentResponse: ''
+            }
+          });
+        } else {
+          // Paciente sin cuestionarios
+          patients.push({
+            id: patient.id,
+            name: patient.name,
+            lastUpdate: new Date().toISOString().split('T')[0],
+            condition: 'Pendiente de evaluación',
+            severity: 50,
+            date: '',
+            userId: patient.id,
+            behavioralData: {
+              itchDuration: '',
+              scratchSpeed: 0,
+              itchIntensity: 0,
+              itchFrequency: 0,
+              skinToNailVibrations: ''
+            },
+            sleepData: {
+              posturalChanges: 0,
+              interruptions: 0,
+              qualityScore: 0
+            },
+            physiologicalData: {
+              heartRate: 0,
+              heartRateVariability: 0,
+              skinConductance: 0,
+              skinTemperature: 0
+            },
+            clinicalData: {
+              skinDiseaseHistory: [],
+              previousTreatments: [],
+              currentMedication: [],
+              treatmentResponse: ''
+            }
+          });
+        }
+      }
+      
+      return patients;
+    }
+    
+    // Si hay un error con la base de datos, intentar con localStorage
+    return getRegisteredPatientsFromLocalStorage();
+  } catch (error) {
+    console.error('Error al obtener pacientes registrados:', error);
+    return getRegisteredPatientsFromLocalStorage();
+  }
+};
+
+const getRegisteredPatientsFromLocalStorage = (): PatientSummary[] => {
   try {
     const patients: PatientSummary[] = [];
     const keys = Object.keys(localStorage);
@@ -238,7 +338,7 @@ const getRegisteredPatients = (): PatientSummary[] => {
 
     return patients;
   } catch (error) {
-    console.error('Error al obtener pacientes registrados:', error);
+    console.error('Error al obtener pacientes de localStorage:', error);
     return [];
   }
 };
@@ -251,9 +351,13 @@ const DoctorResults = () => {
   const [allPatients, setAllPatients] = useState<PatientSummary[]>([]);
 
   useEffect(() => {
-    const registeredPatients = getRegisteredPatients();
-    const combinedPatients = [...mockPatients, ...registeredPatients];
-    setAllPatients(combinedPatients);
+    const loadPatients = async () => {
+      const registeredPatients = await getRegisteredPatients();
+      const combinedPatients = [...mockPatients, ...registeredPatients];
+      setAllPatients(combinedPatients);
+    };
+    
+    loadPatients();
   }, []);
 
   if (!user || user.role !== 'doctor') {
