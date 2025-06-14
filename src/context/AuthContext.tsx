@@ -11,6 +11,7 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
+  error: string | null; // Mantener esta línea para compatibilidad
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (name: string, surname: string, email: string, password: string, role: 'doctor' | 'patient') => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
@@ -18,27 +19,40 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+// Use named function declaration for the provider component
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null); // Mantener el estado de error
 
   useEffect(() => {
-    // Verificar si hay un usuario en localStorage
-    const storedUser = localStorage.getItem('vitalytics-user');
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
-      } catch (error) {
-        console.error('Error parsing stored user:', error);
+    try {
+      // Verificar si hay un usuario en localStorage
+      const storedUser = localStorage.getItem('vitalytics-user');
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+        } catch (err) {
+          // Si hay un error al parsear, simplemente limpiar el localStorage
+          console.error('Error parsing stored user:', err);
+          localStorage.removeItem('vitalytics-user');
+          // No establecer error aquí para evitar pantalla en blanco
+        }
       }
+    } catch (err) {
+      console.error('Error checking localStorage:', err);
+      // No establecer error aquí para evitar pantalla en blanco
+    } finally {
+      // Siempre establecer isLoading a false para continuar con la aplicación
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
+      setError(null); // Resetear error
       
       // Buscar usuario en localStorage
       const storedUsers = localStorage.getItem('vitalytics-users');
@@ -53,9 +67,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: true };
       }
       
+      // No establecer error en el estado, solo devolverlo en la respuesta
       return { success: false, error: 'Credenciales incorrectas' };
-    } catch (error) {
-      console.error('Error during login:', error);
+    } catch (err) {
+      console.error('Error during login:', err);
+      // No establecer error en el estado, solo devolverlo en la respuesta
       return { success: false, error: 'Error al iniciar sesión. Por favor, inténtalo de nuevo.' };
     } finally {
       setIsLoading(false);
@@ -94,8 +110,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('vitalytics-user', JSON.stringify(userWithoutPassword));
       
       return { success: true };
-    } catch (error) {
-      console.error('Error during registration:', error);
+    } catch (err) {
+      console.error('Error during registration:', err);
       return { success: false, error: 'Error al registrar usuario. Por favor, inténtalo de nuevo.' };
     } finally {
       setIsLoading(false);
@@ -104,20 +120,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setUser(null);
+    setError(null); // Resetear error
     localStorage.removeItem('vitalytics-user');
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, error, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => {
+// Use named function declaration for the hook
+export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
+}

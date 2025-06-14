@@ -31,7 +31,6 @@ const AppointmentsComponent: React.FC<AppointmentsComponentProps> = ({ patientId
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [showForm, setShowForm] = useState(false);
-
   const [doctors, setDoctors] = useState<Doctor[]>([]);
 
   useEffect(() => {
@@ -44,8 +43,21 @@ const AppointmentsComponent: React.FC<AppointmentsComponentProps> = ({ patientId
       }
     };
 
+    const fetchAppointments = async () => {
+      try {
+        const appointmentsData = JSON.parse(localStorage.getItem('appointments') || '[]');
+        const patientAppointments = appointmentsData.filter(
+          (app: any) => app.patientId === patientId
+        );
+        setAppointments(patientAppointments);
+      } catch (error) {
+        console.error('Error fetching appointments:', error);
+      }
+    };
+
     fetchDoctors();
-  }, []);
+    fetchAppointments();
+  }, [patientId]);
 
   const createAppointment = async (appointmentData: AppointmentFormData) => {
     try {
@@ -91,12 +103,17 @@ const AppointmentsComponent: React.FC<AppointmentsComponentProps> = ({ patientId
       )}
 
       <div className="space-y-4">
-        {appointments.map((appointment) => (
-          <div key={appointment.id} className="border p-4 rounded">
-            <p>Fecha: {appointment.date.toLocaleString()}</p>
-            <p>Estado: {appointment.status}</p>
-          </div>
-        ))}
+        {appointments.length === 0 ? (
+          <p className="text-gray-500 text-center py-4">No tienes citas programadas</p>
+        ) : (
+          appointments.map((appointment) => (
+            <div key={appointment.id} className="border p-4 rounded shadow-sm">
+              <p className="font-medium">Fecha: {new Date(appointment.date).toLocaleString()}</p>
+              <p>Estado: {appointment.status === 'pending' ? 'Pendiente' : 
+                        appointment.status === 'confirmed' ? 'Confirmada' : 'Cancelada'}</p>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

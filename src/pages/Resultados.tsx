@@ -5,6 +5,7 @@ import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
+import NextAppointment from '@/components/NextAppointment';
 
 
 const Resultados = () => {
@@ -19,7 +20,7 @@ const Resultados = () => {
     <Layout>
       <div className="space-y-8">
         <motion.section 
-          className="text-center space-y-4 mb-12"
+          className="text-center space-y-4 mb-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -38,7 +39,11 @@ const Resultados = () => {
           </p>
         </motion.section>
 
+        {/* Mostrar la próxima cita si existe */}
+        {user && <NextAppointment patientId={user.uid} />}
+
         <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {/* Resto del contenido existente */}
           <motion.div
             className="glass-card p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow"
             initial={{ opacity: 0, y: 20 }}
@@ -59,24 +64,6 @@ const Resultados = () => {
             className="glass-card p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Hablar con el Médico</h3>
-            <p className="text-sm text-gray-600 mb-4">Envía un mensaje o inicia una videollamada con tu médico tratante.</p>
-            <a
-              href="https://wa.me/5215555555555"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block bg-softGreen-600 text-white px-4 py-2 rounded-lg hover:bg-softGreen-700 transition"
-            >
-              Contactar
-            </a>
-          </motion.div>
-
-          <motion.div
-            className="glass-card p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
             <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Enviar Mensaje</h3>
@@ -88,6 +75,7 @@ const Resultados = () => {
               Ir a Mensajes
             </button>
           </motion.div>
+          {/* Resto de las tarjetas... */}
         </div>
       </div>
     </Layout>

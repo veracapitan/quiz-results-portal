@@ -51,6 +51,7 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   const navItems = user?.role === 'doctor' ? [
+    { path: "/doctor-dashboard", label: "Panel del Médico", icon: <User className="h-5 w-5" /> },
     { path: "/resultados", label: "Resultados de Pacientes", icon: <BarChart className="h-5 w-5" /> },
   ] : [
     { path: "/", label: "Cuestionario", icon: <ClipboardList className="h-5 w-5" /> },

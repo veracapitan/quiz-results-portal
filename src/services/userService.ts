@@ -113,3 +113,28 @@ export const getAllPatients = async () => {
     };
   }
 };
+
+// Nueva función para obtener todos los médicos
+export const getAllDoctors = async () => {
+  try {
+    const result = await db.query(
+      'SELECT id, email, name, surname FROM users WHERE role = $1',
+      ['doctor']
+    );
+    
+    return {
+      success: true,
+      doctors: result.rows.map(row => ({
+        id: row.id,
+        name: `${row.name} ${row.surname}`,
+        email: row.email,
+      })),
+    };
+  } catch (error) {
+    console.error('Error al obtener médicos:', error);
+    return {
+      success: false,
+      error: 'Error al obtener médicos. Por favor, inténtalo de nuevo.',
+    };
+  }
+};
