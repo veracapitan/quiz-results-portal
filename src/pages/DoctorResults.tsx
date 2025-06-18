@@ -9,6 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { getAllPatients } from '../services/userService';
+import { getQuestionnairesByUserId } from '../services/questionnaireService';
+import { usePatients } from '../hooks/usePatients';
 
 interface PatientSummary {
   id: string;
@@ -146,32 +149,32 @@ const mockPatients: PatientSummary[] = [
   }
 ];
 
-import { getAllPatients } from '../services/userService';
-import { getQuestionnairesByUserId } from '../services/questionnaireService';
-
 const getRegisteredPatients = async (): Promise<PatientSummary[]> => {
   try {
-    // Intentar obtener pacientes de la base de datos
-    const result = await getAllPatients();
-    
-    if (result.success) {
-      const patients: PatientSummary[] = [];
-      
-      // Para cada paciente, obtener sus cuestionarios
-      for (const patient of result.patients) {
-        const questionnairesResult = await getQuestionnairesByUserId(patient.id);
-        
-        if (questionnairesResult.success && questionnairesResult.questionnaires.length > 0) {
-          const latestQuestionnaire = questionnairesResult.questionnaires[0]; // El más reciente
-          
+    // Obtener todos los pacientes del sistema de autenticación
+    const storedUsers = localStorage.getItem('vitalytics-users');
+    const users = storedUsers ? JSON.parse(storedUsers) : [];
+    const patients: PatientSummary[] = [];
+    const storedQuestionnaires = localStorage.getItem('vitalytics-questionnaires');
+    const questionnaires = storedQuestionnaires ? JSON.parse(storedQuestionnaires) : [];
+
+    for (const user of users) {
+      if (user.role === 'patient') {
+        // Buscar cuestionarios de este paciente
+        const patientQuestionnaires = questionnaires.filter((q: any) => q.userId === user.uid);
+        const latestQuestionnaire = patientQuestionnaires.length > 0
+          ? patientQuestionnaires.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
+          : null;
+
+        if (latestQuestionnaire && latestQuestionnaire.intensity !== undefined) {
           patients.push({
-            id: patient.id,
-            name: patient.name,
+            id: user.uid,
+            name: `${user.name} ${user.surname}`.trim(),
             lastUpdate: latestQuestionnaire.date || new Date().toISOString().split('T')[0],
             condition: `Intensidad del picor: ${latestQuestionnaire.intensity}/10`,
             severity: latestQuestionnaire.intensity * 10,
             date: latestQuestionnaire.date,
-            userId: patient.id,
+            userId: user.uid,
             behavioralData: {
               itchDuration: '',
               scratchSpeed: 0,
@@ -200,13 +203,13 @@ const getRegisteredPatients = async (): Promise<PatientSummary[]> => {
         } else {
           // Paciente sin cuestionarios
           patients.push({
-            id: patient.id,
-            name: patient.name,
+            id: user.uid,
+            name: `${user.name} ${user.surname}`.trim(),
             lastUpdate: new Date().toISOString().split('T')[0],
             condition: 'Pendiente de evaluación',
-            severity: 50,
+            severity: 0,
             date: '',
-            userId: patient.id,
+            userId: user.uid,
             behavioralData: {
               itchDuration: '',
               scratchSpeed: 0,
@@ -234,108 +237,218 @@ const getRegisteredPatients = async (): Promise<PatientSummary[]> => {
           });
         }
       }
-      
-      return patients;
     }
-    
-    // Si hay un error con la base de datos, intentar con localStorage
-    return getRegisteredPatientsFromLocalStorage();
+    return patients;
   } catch (error) {
     console.error('Error al obtener pacientes registrados:', error);
-    return getRegisteredPatientsFromLocalStorage();
+    return [];
   }
 };
 
 const getRegisteredPatientsFromLocalStorage = (): PatientSummary[] => {
   try {
     const patients: PatientSummary[] = [];
-    const keys = Object.keys(localStorage);
     const storedQuestionnaires = localStorage.getItem('vitalytics-questionnaires');
     const questionnaires = storedQuestionnaires ? JSON.parse(storedQuestionnaires) : [];
 
+    console.log('Buscando pacientes en localStorage...');
+    console.log('Cuestionarios encontrados:', questionnaires.length);
+
+    // Intentar leer desde el sistema de autenticación
+    const storedUsers = localStorage.getItem('vitalytics-users');
+    if (storedUsers) {
+      try {
+        const users = JSON.parse(storedUsers);
+        console.log('Usuarios encontrados en vitalytics-users:', users);
+        
+        users.forEach((user: any) => {
+          if (user.role === 'patient') {
+            console.log(`Procesando paciente: ${user.name} ${user.surname} (${user.uid})`);
+            
+            const patientQuestionnaires = questionnaires.filter(q => q.userId === user.uid);
+            const latestQuestionnaire = patientQuestionnaires.length > 0 
+              ? patientQuestionnaires.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
+              : null;
+            
+            console.log(`Cuestionarios para ${user.name}:`, patientQuestionnaires.length);
+            
+            if (latestQuestionnaire && latestQuestionnaire.intensity !== undefined) {
+              patients.push({
+                id: user.uid,
+                name: `${user.name} ${user.surname}`.trim(),
+                lastUpdate: latestQuestionnaire.date || new Date().toISOString().split('T')[0],
+                condition: `Intensidad del picor: ${latestQuestionnaire.intensity}/10`,
+                severity: latestQuestionnaire.intensity * 10,
+                date: latestQuestionnaire.date,
+                userId: user.uid,
+                behavioralData: {
+                  itchDuration: '',
+                  scratchSpeed: 0,
+                  itchIntensity: 0,
+                  itchFrequency: 0,
+                  skinToNailVibrations: ''
+                },
+                sleepData: {
+                  posturalChanges: 0,
+                  interruptions: 0,
+                  qualityScore: 0
+                },
+                physiologicalData: {
+                  heartRate: 0,
+                  heartRateVariability: 0,
+                  skinConductance: 0,
+                  skinTemperature: 0
+                },
+                clinicalData: {
+                  skinDiseaseHistory: [],
+                  previousTreatments: [],
+                  currentMedication: [],
+                  treatmentResponse: ''
+                }
+              });
+            } else {
+              // Paciente sin cuestionarios
+              patients.push({
+                id: user.uid,
+                name: `${user.name} ${user.surname}`.trim(),
+                lastUpdate: new Date().toISOString().split('T')[0],
+                condition: 'Pendiente de evaluación',
+                severity: 50,
+                date: '',
+                userId: user.uid,
+                behavioralData: {
+                  itchDuration: '',
+                  scratchSpeed: 0,
+                  itchIntensity: 0,
+                  itchFrequency: 0,
+                  skinToNailVibrations: ''
+                },
+                sleepData: {
+                  posturalChanges: 0,
+                  interruptions: 0,
+                  qualityScore: 0
+                },
+                physiologicalData: {
+                  heartRate: 0,
+                  heartRateVariability: 0,
+                  skinConductance: 0,
+                  skinTemperature: 0
+                },
+                clinicalData: {
+                  skinDiseaseHistory: [],
+                  previousTreatments: [],
+                  currentMedication: [],
+                  treatmentResponse: ''
+                }
+              });
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Error parsing vitalytics-users:', error);
+      }
+    }
+
+    // También buscar en el sistema antiguo (keys individuales) por compatibilidad
+    const keys = Object.keys(localStorage);
+    console.log('Keys encontradas:', keys.filter(key => key.startsWith('user_role_')));
+    
     keys.forEach(key => {
       if (key.startsWith('user_role_')) {
         const uid = key.replace('user_role_', '');
         const role = localStorage.getItem(key);
+        
         if (role === 'patient') {
           const name = localStorage.getItem(`user_name_${uid}`) || '';
           const surname = localStorage.getItem(`user_surname_${uid}`) || '';
-          const patientQuestionnaires = questionnaires.filter(q => q.userId === uid);
-          const latestQuestionnaire = patientQuestionnaires.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
           
-          if (latestQuestionnaire && latestQuestionnaire.intensity !== undefined) {
-            patients.push({
-              id: uid,
-              name: `${name} ${surname}`.trim(),
-              lastUpdate: latestQuestionnaire.date || new Date().toISOString().split('T')[0],
-              condition: `Intensidad del picor: ${latestQuestionnaire.intensity}/10`,
-              severity: latestQuestionnaire.intensity * 10,
-              date: '',
-              userId: '',
-              behavioralData: {
-                itchDuration: '',
-                scratchSpeed: 0,
-                itchIntensity: 0,
-                itchFrequency: 0,
-                skinToNailVibrations: ''
-              },
-              sleepData: {
-                posturalChanges: 0,
-                interruptions: 0,
-                qualityScore: 0
-              },
-              physiologicalData: {
-                heartRate: 0,
-                heartRateVariability: 0,
-                skinConductance: 0,
-                skinTemperature: 0
-              },
-              clinicalData: {
-                skinDiseaseHistory: [],
-                previousTreatments: [],
-                currentMedication: [],
-                treatmentResponse: ''
-              }
-            });
-          } else {
-            patients.push({
-              id: uid,
-              name: `${name} ${surname}`.trim(),
-              lastUpdate: new Date().toISOString().split('T')[0],
-              condition: 'Pendiente de evaluación',
-              severity: 50,
-              date: '',
-              userId: '',
-              behavioralData: {
-                itchDuration: '',
-                scratchSpeed: 0,
-                itchIntensity: 0,
-                itchFrequency: 0,
-                skinToNailVibrations: ''
-              },
-              sleepData: {
-                posturalChanges: 0,
-                interruptions: 0,
-                qualityScore: 0
-              },
-              physiologicalData: {
-                heartRate: 0,
-                heartRateVariability: 0,
-                skinConductance: 0,
-                skinTemperature: 0
-              },
-              clinicalData: {
-                skinDiseaseHistory: [],
-                previousTreatments: [],
-                currentMedication: [],
-                treatmentResponse: ''
-              }
-            });
+          console.log(`Procesando paciente (sistema antiguo): ${name} ${surname} (${uid})`);
+          
+          // Solo procesar si tiene nombre y apellido y no está ya en la lista
+          if (name && surname && !patients.some(p => p.id === uid)) {
+            const patientQuestionnaires = questionnaires.filter(q => q.userId === uid);
+            const latestQuestionnaire = patientQuestionnaires.length > 0 
+              ? patientQuestionnaires.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
+              : null;
+            
+            console.log(`Cuestionarios para ${name}:`, patientQuestionnaires.length);
+            
+            if (latestQuestionnaire && latestQuestionnaire.intensity !== undefined) {
+              patients.push({
+                id: uid,
+                name: `${name} ${surname}`.trim(),
+                lastUpdate: latestQuestionnaire.date || new Date().toISOString().split('T')[0],
+                condition: `Intensidad del picor: ${latestQuestionnaire.intensity}/10`,
+                severity: latestQuestionnaire.intensity * 10,
+                date: latestQuestionnaire.date,
+                userId: uid,
+                behavioralData: {
+                  itchDuration: '',
+                  scratchSpeed: 0,
+                  itchIntensity: 0,
+                  itchFrequency: 0,
+                  skinToNailVibrations: ''
+                },
+                sleepData: {
+                  posturalChanges: 0,
+                  interruptions: 0,
+                  qualityScore: 0
+                },
+                physiologicalData: {
+                  heartRate: 0,
+                  heartRateVariability: 0,
+                  skinConductance: 0,
+                  skinTemperature: 0
+                },
+                clinicalData: {
+                  skinDiseaseHistory: [],
+                  previousTreatments: [],
+                  currentMedication: [],
+                  treatmentResponse: ''
+                }
+              });
+            } else {
+              // Paciente sin cuestionarios
+              patients.push({
+                id: uid,
+                name: `${name} ${surname}`.trim(),
+                lastUpdate: new Date().toISOString().split('T')[0],
+                condition: 'Pendiente de evaluación',
+                severity: 50,
+                date: '',
+                userId: uid,
+                behavioralData: {
+                  itchDuration: '',
+                  scratchSpeed: 0,
+                  itchIntensity: 0,
+                  itchFrequency: 0,
+                  skinToNailVibrations: ''
+                },
+                sleepData: {
+                  posturalChanges: 0,
+                  interruptions: 0,
+                  qualityScore: 0
+                },
+                physiologicalData: {
+                  heartRate: 0,
+                  heartRateVariability: 0,
+                  skinConductance: 0,
+                  skinTemperature: 0
+                },
+                clinicalData: {
+                  skinDiseaseHistory: [],
+                  previousTreatments: [],
+                  currentMedication: [],
+                  treatmentResponse: ''
+                }
+              });
+            }
           }
         }
       }
     });
 
+    console.log('Pacientes encontrados en localStorage:', patients.length);
     return patients;
   } catch (error) {
     console.error('Error al obtener pacientes de localStorage:', error);
@@ -349,16 +462,28 @@ const DoctorResults = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPatient, setSelectedPatient] = useState<PatientSummary | null>(null);
   const [allPatients, setAllPatients] = useState<PatientSummary[]>([]);
+  const { patients: registeredPatients, isLoading: patientsLoading } = usePatients();
 
   useEffect(() => {
     const loadPatients = async () => {
-      const registeredPatients = await getRegisteredPatients();
-      const combinedPatients = [...mockPatients, ...registeredPatients];
-      setAllPatients(combinedPatients);
+      try {
+        const registeredPatientsData = await getRegisteredPatients();
+        // Unir mock + reales, evitando duplicados por id
+        const all = [
+          ...mockPatients,
+          ...registeredPatientsData.filter(
+            real => !mockPatients.some(mock => mock.id === real.id)
+          ),
+        ];
+        setAllPatients(all);
+      } catch (error) {
+        console.error('Error loading patients:', error);
+        setAllPatients(mockPatients);
+      }
     };
     
     loadPatients();
-  }, []);
+  }, [registeredPatients]);
 
   if (!user || user.role !== 'doctor') {
     return <Navigate to="/" />;
@@ -401,76 +526,64 @@ const DoctorResults = () => {
             </div>
           </div>
 
-          <div className="grid gap-6">
-            {filteredPatients.map((patient) => (
-              <motion.div
-                key={patient.id}
-                className="glass-card p-6 rounded-xl hover:shadow-lg transition-shadow"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                whileHover={{ scale: 1.02 }}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">{patient.name}</h3>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      <span>ID: {patient.id}</span>
-                      <span>•</span>
-                      <span>Última actualización: {patient.lastUpdate}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <div className="flex flex-col items-center">
-                      <div className={`w-6 h-6 rounded-full mb-1 border ${patient.severity >= 70 ? 'bg-red-500 border-red-700' : patient.severity >= 40 ? 'bg-yellow-500 border-yellow-700' : 'bg-green-500 border-green-700'}`}></div>
-                      <span className="text-xs text-gray-500">
-                        {patient.severity >= 70 ? 'Alto' : patient.severity >= 40 ? 'Medio' : 'Bajo'}
-                      </span>
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="border" 
-                      onClick={() => {
-                        // Asegurarnos de que tenemos todos los IDs necesarios
-                        if (!user || !patient.id) return;
-                        
-                        // Crear una clave única para el chat que incluya ambos IDs
-                        const chatKey = `chat_${patient.id}_${user.uid}`;
-                        
-                        // Navegar a la página de mensajes con todos los parámetros necesarios
-                        navigate('/mensajes', {
-                          state: { 
-                            patientId: patient.id,
-                            doctorId: user.uid,
-                            chatKey: chatKey
-                          }
-                        });
-                      }}
-                    >
-                      Chat
-                    </Button>
-                    <Button
-                      onClick={() => setSelectedPatient(patient)}
-                      className="bg-softGreen-500 hover:bg-softGreen-600"
-                    >
-                      Ver Detalles
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium">{patient.condition}</span>
-                    <span className="text-sm text-gray-600">
-                      Intensidad: {patient.severity}%
-                    </span>
-                  </div>
-                  <Progress value={patient.severity} className="h-2" />
+          {patientsLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-softGreen-500"></div>
+              <span className="ml-3 text-gray-600">Cargando pacientes...</span>
             </div>
-            
-              </motion.div>
-            ))}
-          </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredPatients.map((patient) => (
+                <motion.div
+                  key={patient.id}
+                  className="glass-card p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileHover={{ scale: 1.02 }}
+                  onClick={() => setSelectedPatient(patient)}
+                >
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">{patient.name}</h3>
+                        <p className="text-sm text-gray-500">ID: {patient.id}</p>
+                      </div>
+                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        patient.severity >= 70 ? 'bg-red-100 text-red-800' :
+                        patient.severity >= 40 ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-green-100 text-green-800'
+                      }`}>
+                        {patient.severity >= 70 ? 'Alta' :
+                         patient.severity >= 40 ? 'Media' : 'Baja'}
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-600">{patient.condition}</p>
+                      <p className="text-xs text-gray-500">Última actualización: {patient.lastUpdate}</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Severidad</span>
+                        <span>{patient.severity}%</span>
+                      </div>
+                      <Progress value={patient.severity} className="h-2" />
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+
+          {!patientsLoading && filteredPatients.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-500 mb-4">No se encontraron pacientes que coincidan con tu búsqueda.</p>
+              <Button onClick={() => setSearchTerm('')} variant="outline">
+                Limpiar búsqueda
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </Layout>
