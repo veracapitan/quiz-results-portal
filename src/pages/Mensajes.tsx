@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback } from '@radix-ui/react-avatar';
 import { useDoctors } from '@/hooks/useDoctors';
+import { usePatients } from '@/hooks/usePatients';
 
 interface SavedChat {
   id: string;
@@ -13,216 +14,151 @@ interface SavedChat {
   timestamp: Date;
 }
 
+function getChatKey(userId1: string, userId2: string) {
+  return `chat_${[userId1, userId2].sort().join('_')}`;
+}
+
 const Mensajes = () => {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const { patientId, doctorId, chatKey, newChat } = location.state || {};
   const [savedChats, setSavedChats] = useState<SavedChat[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [selectedChat, setSelectedChat] = useState<{
     chatKey: string;
     patientId: string;
     doctorId: string;
   } | null>(null);
-  const [showDoctorList, setShowDoctorList] = useState(false);
-  const { doctors, isLoading: doctorsLoading } = useDoctors();
+  const [showParticipantList, setShowParticipantList] = useState(false);
+  const { doctors } = useDoctors();
+  const { patients } = usePatients();
 
   useEffect(() => {
-    // Si tenemos chatKey, doctorId y patientId, establecer el chat seleccionado
     if (chatKey && doctorId && patientId) {
-      setSelectedChat({
-        chatKey,
-        patientId,
-        doctorId
-      });
+      setSelectedChat({ chatKey, patientId, doctorId });
     }
   }, [chatKey, doctorId, patientId]);
 
   useEffect(() => {
-    const loadChats = async () => {
-      if (!user) {
-        setIsLoading(false);
-        return;
-      }
+    if (!user) return;
 
-      try {
-        const chatKeys = Object.keys(localStorage).filter(key => 
-          key.startsWith('chat_') && (
-            (user.role === 'doctor' && key.includes(`_${user.uid}`)) ||
-            (user.role === 'patient' && key.includes(`_${user.uid}`))
-          )
-        );
+    const chatKeys = Object.keys(localStorage).filter(key =>
+      key.startsWith('chat_') && key.includes(user.uid)
+    );
 
-        const chats: SavedChat[] = chatKeys.map(key => {
-          const messages = JSON.parse(localStorage.getItem(key) || '[]');
-          const lastMessage = messages[messages.length - 1] || {};
-          const participantId = key.split('_')[1] === user.uid ? key.split('_')[2] : key.split('_')[1];
-          const participantName = localStorage.getItem(`user_name_${participantId}`) || 'Usuario';
-          const participantSurname = localStorage.getItem(`user_surname_${participantId}`) || '';
+    const chats: SavedChat[] = chatKeys.map(key => {
+      const messages = JSON.parse(localStorage.getItem(key) || '[]');
+      const lastMessage = messages[messages.length - 1] || {};
+      const ids = key.replace('chat_', '').split('_');
+      const participantId = ids.find(id => id !== user.uid) || '';
+      const name = localStorage.getItem(`user_name_${participantId}`) || 'Usuario';
+      const surname = localStorage.getItem(`user_surname_${participantId}`) || '';
 
-          return {
-            id: key,
-            participantName: `${participantName} ${participantSurname}`.trim(),
-            lastMessage: lastMessage.content || 'No hay mensajes',
-            timestamp: new Date(lastMessage.timestamp || Date.now())
-          };
-        });
+      return {
+        id: key,
+        participantName: `${name} ${surname}`.trim(),
+        lastMessage: lastMessage.content || 'Sin mensajes',
+        timestamp: new Date(lastMessage.timestamp || Date.now())
+      };
+    });
 
-        setSavedChats(chats.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()));
-      } catch (error) {
-        console.error('Error al cargar los chats:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadChats();
+    setSavedChats(chats.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()));
   }, [user]);
 
-  useEffect(() => {
-    if (newChat) {
-      setShowDoctorList(true);
-    }
-  }, [newChat]);
-
-  if (!user?.uid) {
-    return <Navigate to="/login" />;
-  }
-
-  if (isLoading || doctorsLoading) {
-    return (
-      <Layout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-softGreen-500"></div>
-        </div>
-      </Layout>
-    );
-  }
+  if (!user?.uid) return <Navigate to="/login" />;
 
   return (
     <Layout>
       <div className="p-4 max-w-4xl mx-auto">
         <div className="flex items-center mb-6">
-          <button
-            onClick={() => navigate(-1)}
-            className="mr-4 text-gray-500 hover:text-gray-700"
-            aria-label="Volver"
-          >
-            ←
-          </button>
+          <button onClick={() => navigate(-1)} className="mr-4 text-gray-500">←</button>
           <h1 className="text-2xl font-bold">Mensajes</h1>
-          {user?.role === 'patient' && !selectedChat && !showDoctorList && (
-            <button
-              onClick={() => setShowDoctorList(true)}
-              className="ml-auto bg-softGreen-500 hover:bg-softGreen-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
-            >
-              Nuevo Chat con Médico
+          {!selectedChat && !showParticipantList && (
+            <button onClick={() => setShowParticipantList(true)} className="ml-auto bg-green-500 text-white px-4 py-2 rounded">
+              Nuevo Chat
             </button>
           )}
         </div>
 
-        {showDoctorList ? (
-          <div className="grid gap-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Selecciona un médico para chatear</h2>
-              <button
-                onClick={() => setShowDoctorList(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                Volver
-              </button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {doctors.map((doctor) => (
-                <div 
-                  key={doctor.uid}
-                  className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors duration-200 shadow-sm"
-                  onClick={() => {
-                    const newChatKey = `chat_${user.uid}_${doctor.uid}`;
-                    setSelectedChat({
-                      chatKey: newChatKey,
-                      patientId: user.uid,
-                      doctorId: doctor.uid
-                    });
-                    setShowDoctorList(false);
-                  }}
-                >
-                  <div className="flex items-center space-x-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback>
-                        {`${doctor.name[0]}${doctor.surname[0]}`}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-medium">{`${doctor.name} ${doctor.surname}`}</h3>
-                      <p className="text-sm text-gray-500">{doctor.specialty || 'Médico General'}</p>
+        {showParticipantList ? (
+          <div>
+            <h2 className="text-xl mb-4">
+              {user.role === 'doctor' ? 'Selecciona un paciente' : 'Selecciona un médico'}
+            </h2>
+            <div className="grid gap-4">
+              {(user.role === 'doctor' ? patients : doctors).map(person => {
+                const otherId = person.uid;
+                const newChatKey = getChatKey(user.uid, otherId);
+                const isDoctor = user.role === 'doctor';
+
+                return (
+                  <div key={otherId} className="p-4 border rounded cursor-pointer hover:bg-gray-50"
+                    onClick={() => {
+                      setSelectedChat({
+                        chatKey: newChatKey,
+                        patientId: isDoctor ? otherId : user.uid,
+                        doctorId: isDoctor ? user.uid : otherId,
+                      });
+                      setShowParticipantList(false);
+                    }}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback>{person.name[0]}{person.surname[0]}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-medium">{`${person.name} ${person.surname}`}</h3>
+                        <p className="text-sm text-gray-500">
+                          {isDoctor ? 'Paciente' : (person.specialty || 'Médico')}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              {doctors.length === 0 && (
-                <div className="text-center py-8 col-span-2">
-                  <p className="text-gray-500">
-                    No hay médicos disponibles en este momento
-                  </p>
-                </div>
-              )}
+                );
+              })}
             </div>
           </div>
         ) : selectedChat ? (
-          <div className="border rounded-lg h-[600px] shadow-lg">
-            <ChatComponent 
-              patientId={selectedChat.patientId}
-              doctorId={selectedChat.doctorId}
-              chatKey={selectedChat.chatKey}
-              onBack={() => setSelectedChat(null)}
-            />
-          </div>
+          <ChatComponent
+            chatKey={selectedChat.chatKey}
+            patientId={selectedChat.patientId}
+            doctorId={selectedChat.doctorId}
+            onBack={() => setSelectedChat(null)}
+          />
         ) : (
           <div className="grid gap-4">
             {savedChats.length > 0 ? (
-              savedChats.map(chat => (
-                <div 
-                  key={chat.id}
-                  className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors duration-200 shadow-sm"
-                  onClick={() => {
-                    const [_, pid, did] = chat.id.split('_');
-                    setSelectedChat({
-                      chatKey: chat.id,
-                      patientId: pid,
-                      doctorId: did
-                    });
-                  }}
-                >
-                  <div className="flex items-center space-x-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback>
-                        {chat.participantName.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-medium">{chat.participantName}</h3>
-                      <p className="text-sm text-gray-500">{chat.lastMessage}</p>
-                      <p className="text-xs text-gray-400">
-                        {chat.timestamp.toLocaleDateString()} {chat.timestamp.toLocaleTimeString()}
-                      </p>
+              savedChats.map(chat => {
+                const [_, id1, id2] = chat.id.split('_');
+                const role1 = localStorage.getItem(`user_role_${id1}`);
+                const patientId = role1 === 'patient' ? id1 : id2;
+                const doctorId = role1 === 'doctor' ? id1 : id2;
+
+                return (
+                  <div key={chat.id} className="p-4 border rounded hover:bg-gray-50 cursor-pointer"
+                    onClick={() =>
+                      setSelectedChat({
+                        chatKey: chat.id,
+                        patientId,
+                        doctorId
+                      })
+                    }
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback>{chat.participantName[0]}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-medium">{chat.participantName}</h3>
+                        <p className="text-sm text-gray-500">{chat.lastMessage}</p>
+                        <p className="text-xs text-gray-400">{chat.timestamp.toLocaleString()}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500 mb-4">No hay conversaciones guardadas</p>
-                {user?.role === 'patient' && (
-                  <button
-                    onClick={() => navigate('/mensajes', { state: { newChat: true } })}
-                    className="bg-softGreen-500 hover:bg-softGreen-600 text-white px-6 py-3 rounded-lg transition-colors duration-200"
-                  >
-                    Iniciar Nueva Conversación
-                  </button>
-                )}
-              </div>
+              <p className="text-center text-gray-500">No hay conversaciones</p>
             )}
           </div>
         )}

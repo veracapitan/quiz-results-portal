@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -21,99 +20,60 @@ interface Message {
   };
 }
 
-interface Doctor {
-  id: string;
-  name: string;
-  specialty: string;
-  avatar: string;
-}
-
 interface ChatComponentProps {
-  patientId?: string;
-  doctorId?: string;
-  chatKey?: string;
-  onBack?: () => void;
+  patientId: string;
+  doctorId: string;
+  chatKey: string;
+  onBack: () => void;
 }
 
 const ChatComponent: React.FC<ChatComponentProps> = ({ patientId, doctorId, chatKey, onBack }) => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [attachments, setAttachments] = useState<File[]>([]);
 
-  useEffect(() => {
-    const loadDoctors = () => {
-      const doctorsList: Doctor[] = [];
-      const keys = Object.keys(localStorage);
-      
-      keys.forEach(key => {
-        if (key.startsWith('user_role_')) {
-          const uid = key.replace('user_role_', '');
-          const role = localStorage.getItem(key);
-          if (role === 'doctor') {
-            const name = localStorage.getItem(`user_name_${uid}`) || '';
-            const surname = localStorage.getItem(`user_surname_${uid}`) || '';
-            const specialty = localStorage.getItem(`user_specialty_${uid}`) || 'Medicina General';
-            
-            doctorsList.push({
-              id: uid,
-              name: `Dr. ${name} ${surname}`.trim(),
-              specialty,
-              avatar: '/doctor-avatar.png'
-            });
-          }
-        }
-      });
-      
-      setDoctors(doctorsList);
-    };
+  // Determinar el otro participante
+  const otherId = user?.role === 'doctor' ? patientId : doctorId;
 
-    loadDoctors();
-  }, []);
+  // Obtener nombre y apellido del otro usuario desde localStorage
+  const otherName = localStorage.getItem(`user_name_${otherId}`) || 'Desconocido';
+  const otherSurname = localStorage.getItem(`user_surname_${otherId}`) || '';
 
+  const otherAvatar = user?.role === 'doctor' ? '/patient-avatar.png' : '/doctor-avatar.png';
+
+  // Cargar mensajes al montar
   useEffect(() => {
-    if (chatKey) {
-      try {
-        const saved = localStorage.getItem(chatKey);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          const withDates: Message[] = parsed.map(msg => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp)
-          }));
-          setMessages(withDates);
-        } else {
-          setMessages([]);
-          localStorage.setItem(chatKey, JSON.stringify([]));
-        }
-      } catch (error) {
-        console.error('Error al cargar mensajes:', error);
-        setMessages([]);
-      }
+    const saved = localStorage.getItem(chatKey);
+    if (saved) {
+      const parsed: Message[] = JSON.parse(saved).map(msg => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp)
+      }));
+      setMessages(parsed);
     }
   }, [chatKey]);
 
+  // Sincronizar con cambios en otras pestañas
   useEffect(() => {
-    if (chatKey && messages.length > 0) {
-      try {
-        localStorage.setItem(
-          chatKey,
-          JSON.stringify(
-            messages.map(msg => ({
-              ...msg,
-              timestamp: msg.timestamp.toISOString()
-            }))
-          )
-        );
-      } catch (error) {
-        console.error('Error al guardar mensajes:', error);
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === chatKey) {
+        const updated = JSON.parse(e.newValue || '[]').map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+        setMessages(updated);
       }
-    }
-  }, [messages, chatKey]);
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [chatKey]);
+
+  // Auto scroll al último mensaje
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -122,175 +82,85 @@ const ChatComponent: React.FC<ChatComponentProps> = ({ patientId, doctorId, chat
   };
 
   const sendMessage = () => {
-    if ((!newMessage.trim() && attachments.length === 0) || (!selectedDoctor && !chatKey)) return;
+    if (!newMessage.trim() && attachments.length === 0) return;
 
-    // Usar el chatKey existente si está disponible, si no, crear uno nuevo
-    const currentChatKey = chatKey || `chat_${user?.uid}_${selectedDoctor?.id}`;
-    
     const msg: Message = {
       id: Date.now().toString(),
       content: newMessage.trim(),
-      senderId: user?.uid || 'unknown',
+      senderId: user!.uid,
+      receiverId: otherId,
       timestamp: new Date(),
-      isDoctor: user?.role === 'doctor', // Establecer basado en el rol del usuario
-      receiverId: doctorId || selectedDoctor?.id || '',
-      conversationId: currentChatKey,
-      ...(attachments.length > 0 && {
-        attachment: {
-          type: 'image',
-          url: URL.createObjectURL(attachments[0]),
-          name: attachments[0].name
-        }
-      })
+      conversationId: chatKey,
+      isDoctor: user!.role === 'doctor',
+      senderName: user!.name,
+      senderSurname: user!.surname,
+      attachment: attachments.length > 0 ? {
+        type: 'image',
+        url: URL.createObjectURL(attachments[0]),
+        name: attachments[0].name
+      } : undefined
     };
 
-    setMessages(prev => [...prev, msg]);
+    const updatedMessages = [...messages, msg];
+    setMessages(updatedMessages);
+    localStorage.setItem(chatKey, JSON.stringify(updatedMessages.map(m => ({
+      ...m,
+      timestamp: m.timestamp.toISOString()
+    }))));
+
     setNewMessage('');
     setAttachments([]);
-
-    // Guardar en localStorage
-    const currentMessages = JSON.parse(localStorage.getItem(currentChatKey) || '[]');
-    localStorage.setItem(
-      currentChatKey,
-      JSON.stringify([
-        ...currentMessages,
-        {
-          ...msg,
-          timestamp: msg.timestamp.toISOString()
-        }
-      ])
-    );
   };
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
   return (
-    <div className="flex flex-col h-full p-4 border rounded-lg bg-green-50">
-      {!selectedDoctor && !chatKey ? (
-        <div className="p-4">
-          <h2 className="text-xl font-bold mb-4">Selecciona un médico para chatear</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {doctors.map(doctor => (
-              <div
-                key={doctor.id}
-                className="border rounded-lg p-4 cursor-pointer hover:bg-green-100 transition-colors duration-200"
-                onClick={() => setSelectedDoctor(doctor)}
-              >
-                <div className="flex items-center space-x-3">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={doctor.avatar} />
-                    <AvatarFallback>
-                      {doctor.name
-                        .split(' ')
-                        .map(n => n[0])
-                        .join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="font-medium text-lg">{doctor.name}</h3>
-                    <p className="text-sm text-gray-600">{doctor.specialty}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          {doctors.length === 0 && (
-            <p className="text-center text-gray-500 mt-4">No hay médicos disponibles en este momento</p>
-          )}
+    <div className="flex flex-col h-[600px] border rounded-lg bg-green-50">
+      {/* ENCABEZADO CON NOMBRE DEL OTRO USUARIO */}
+      <div className="flex items-center p-3 border-b">
+        <button onClick={onBack} className="mr-2 text-gray-500 hover:text-gray-700">←</button>
+        <Avatar className="h-8 w-8 mr-2">
+          <AvatarImage src={otherAvatar} />
+          <AvatarFallback>{`${otherName[0] || ''}${otherSurname[0] || ''}`}</AvatarFallback>
+        </Avatar>
+        <div>
+          <h3 className="font-medium text-base">{`${otherName} ${otherSurname}`}</h3>
         </div>
-      ) : (
-        <>
-          <div className="flex items-center p-3 border-b">
-            <button
-              onClick={onBack ? onBack : () => setSelectedDoctor(null)}
-              className="mr-2 text-gray-500 hover:text-gray-700"
-            >
-              ←
-            </button>
-            <Avatar className="h-8 w-8 mr-2">
-              <AvatarImage src={selectedDoctor?.avatar} />
-              <AvatarFallback>
-                {selectedDoctor?.name
-                  .split(' ')
-                  .map(n => n[0])
-                  .join('')}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h3 className="font-medium">{selectedDoctor?.name}</h3>
-              <p className="text-xs text-gray-500">{selectedDoctor?.specialty}</p>
+      </div>
+
+      {/* MENSAJES */}
+      <ScrollArea className="flex-1 px-4 py-2 overflow-y-auto">
+        {messages.map(message => (
+          <div
+            key={message.id}
+            className={`flex items-start mb-4 ${message.senderId === user?.uid ? 'justify-end' : 'justify-start'}`}
+          >
+            <div className={`max-w-xs p-3 rounded-lg ${message.senderId === user?.uid ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`}>
+              <p>{message.content}</p>
+              {message.attachment && (
+                <img src={message.attachment.url} alt={message.attachment.name} className="mt-2 max-w-full rounded-md" />
+              )}
+              <p className="text-xs opacity-70 mt-1">
+                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </p>
             </div>
           </div>
+        ))}
+        <div ref={messagesEndRef} />
+      </ScrollArea>
 
-          <ScrollArea className="flex-1 mb-4 rounded-md border p-4">
-            {messages.map(message => (
-              <div
-                key={message.id}
-                className={`flex items-start mb-4 ${
-                  message.isDoctor ? 'justify-end' : 'justify-start'
-                }`}
-              >
-                <Avatar className="h-8 w-8 mr-2">
-                  <AvatarImage
-                    src={message.isDoctor ? '/doctor-avatar.png' : '/patient-avatar.png'}
-                  />
-                  <AvatarFallback>{message.isDoctor ? 'DR' : 'PT'}</AvatarFallback>
-                </Avatar>
-                <div
-                  className={`max-w-xs p-3 rounded-lg ${
-                    message.isDoctor
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-200 text-gray-800'
-                  }`}
-                >
-                  <p className="text-sm">{message.content}</p>
-                  {message.attachment && (
-                    <div className="mt-2">
-                      <img 
-                        src={message.attachment.url} 
-                        alt={message.attachment.name}
-                        className="max-w-xs max-h-40 rounded-md"
-                      />
-                    </div>
-                  )}
-                  <p className="text-xs mt-1 opacity-70">
-                    {message.timestamp.toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </p>
-                </div>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </ScrollArea>
-
-          <div className="border-t p-4">
-            <div className="flex space-x-2">
-              <Input
-                type="text"
-                value={newMessage}
-                onChange={e => setNewMessage(e.target.value)}
-                className="flex-1"
-                placeholder="Escribe un mensaje..."
-              />
-              <label className="cursor-pointer p-2 rounded hover:bg-gray-100">
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={handleFileChange} 
-                  className="hidden" 
-                  multiple={false}
-                />
-                📎
-              </label>
-              <Button onClick={sendMessage}>Enviar</Button>
-            </div>
-          </div>
-        </>
-      )}
+      {/* INPUT DE MENSAJE */}
+      <div className="p-3 border-t flex space-x-2">
+        <Input
+          type="text"
+          value={newMessage}
+          onChange={e => setNewMessage(e.target.value)}
+          placeholder="Escribe un mensaje..."
+        />
+        <label className="cursor-pointer px-2">
+          <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+          📎
+        </label>
+        <Button onClick={sendMessage}>Enviar</Button>
+      </div>
     </div>
   );
 };

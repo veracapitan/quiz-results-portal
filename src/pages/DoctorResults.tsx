@@ -468,20 +468,12 @@ const DoctorResults = () => {
     const loadPatients = async () => {
       try {
         const registeredPatientsData = await getRegisteredPatients();
-        // Unir mock + reales, evitando duplicados por id
-        const all = [
-          ...mockPatients,
-          ...registeredPatientsData.filter(
-            real => !mockPatients.some(mock => mock.id === real.id)
-          ),
-        ];
-        setAllPatients(all);
+        setAllPatients(registeredPatientsData);
       } catch (error) {
         console.error('Error loading patients:', error);
-        setAllPatients(mockPatients);
+        setAllPatients([]);
       }
     };
-    
     loadPatients();
   }, [registeredPatients]);
 
@@ -504,7 +496,9 @@ const DoctorResults = () => {
           />
         )}
 
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Resultados de Pacientes</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Resultados de Pacientes</h1>
+        </div>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
           Visualice y analice los resultados de sus pacientes para un mejor seguimiento de su condición.
         </p>
@@ -569,6 +563,19 @@ const DoctorResults = () => {
                         <span>{patient.severity}%</span>
                       </div>
                       <Progress value={patient.severity} className="h-2" />
+                    </div>
+                    <div className="flex justify-end mt-4">
+                      <Button
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const chatKey = `chat_${[patient.id, user.uid].sort().join('_')}`;
+                          navigate('/mensajes', { state: { patientId: patient.id, doctorId: user.uid, chatKey } });
+                        }}
+                        className="text-softGreen-600 border-softGreen-500 hover:bg-softGreen-50"
+                      >
+                        Chat
+                      </Button>
                     </div>
                   </div>
                 </motion.div>

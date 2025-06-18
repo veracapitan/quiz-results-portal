@@ -63,7 +63,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (foundUser) {
         const { password, ...userWithoutPassword } = foundUser;
         setUser(userWithoutPassword);
-        localStorage.setItem('vitalytics-user', JSON.stringify(userWithoutPassword));
+        localStorage.setItem(`user_name_${foundUser.uid}`, foundUser.name);
+localStorage.setItem(`user_surname_${foundUser.uid}`, foundUser.surname);
+localStorage.setItem(`user_role_${foundUser.uid}`, foundUser.role);
         return { success: true };
       }
       
@@ -107,8 +109,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Establecer usuario actual (sin contraseña)
       const { password: _, ...userWithoutPassword } = newUser;
       setUser(userWithoutPassword);
-      localStorage.setItem('vitalytics-user', JSON.stringify(userWithoutPassword));
-      
+      // Guardar datos por UID para poder acceder desde el chat
+      localStorage.setItem(`user_name_${newUser.uid}`, newUser.name);
+      localStorage.setItem(`user_surname_${newUser.uid}`, newUser.surname);
+      localStorage.setItem(`user_role_${newUser.uid}`, newUser.role);
+            
       return { success: true };
     } catch (err) {
       console.error('Error during registration:', err);
