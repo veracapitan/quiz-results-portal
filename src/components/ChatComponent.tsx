@@ -32,9 +32,10 @@ interface ChatComponentProps {
   patientId?: string;
   doctorId?: string;
   chatKey?: string;
+  onBack?: () => void;
 }
 
-const ChatComponent: React.FC<ChatComponentProps> = ({ patientId, doctorId, chatKey }) => {
+const ChatComponent: React.FC<ChatComponentProps> = ({ patientId, doctorId, chatKey, onBack }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
@@ -203,7 +204,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({ patientId, doctorId, chat
         <>
           <div className="flex items-center p-3 border-b">
             <button
-              onClick={() => setSelectedDoctor(null)}
+              onClick={onBack ? onBack : () => setSelectedDoctor(null)}
               className="mr-2 text-gray-500 hover:text-gray-700"
             >
               ←

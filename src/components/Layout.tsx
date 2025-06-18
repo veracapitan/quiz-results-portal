@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -54,8 +53,9 @@ export default function Layout({ children }: LayoutProps) {
     { path: "/doctor-dashboard", label: "Panel del Médico", icon: <User className="h-5 w-5" /> },
     { path: "/resultados", label: "Resultados de Pacientes", icon: <BarChart className="h-5 w-5" /> },
   ] : [
-    { path: "/", label: "Cuestionario", icon: <ClipboardList className="h-5 w-5" /> },
-    { path: "/resultados", label: "Mis Resultados", icon: <BarChart className="h-5 w-5" /> },
+    { path: "/cuestionarios", label: "Cuestionarios", icon: <ClipboardList className="h-5 w-5" /> },
+    { path: "/historial", label: "Historial", icon: <BarChart className="h-5 w-5" /> },
+    { path: "/servicios-medicos", label: "Servicios Médicos", icon: <User className="h-5 w-5" /> },
   ];
 
   return (

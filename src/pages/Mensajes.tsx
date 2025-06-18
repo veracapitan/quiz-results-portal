@@ -4,6 +4,7 @@ import ChatComponent from '@/components/ChatComponent';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback } from '@radix-ui/react-avatar';
+import { useDoctors } from '@/hooks/useDoctors';
 
 interface SavedChat {
   id: string;
@@ -25,12 +26,7 @@ const Mensajes = () => {
     doctorId: string;
   } | null>(null);
   const [showDoctorList, setShowDoctorList] = useState(false);
-  const [doctors, setDoctors] = useState<Array<{
-    uid: string;
-    name: string;
-    surname: string;
-    specialty?: string;
-  }>>([]);
+  const { doctors, isLoading: doctorsLoading } = useDoctors();
 
   useEffect(() => {
     // Si tenemos chatKey, doctorId y patientId, establecer el chat seleccionado
@@ -84,44 +80,17 @@ const Mensajes = () => {
     loadChats();
   }, [user]);
 
-  // Mover el useEffect de loadDoctors aquí, antes del return
   useEffect(() => {
-    if (showDoctorList) {
-      const loadDoctors = () => {
-        const doctorsList = [];
-        const keys = Object.keys(localStorage);
-        
-        keys.forEach(key => {
-          if (key.startsWith('user_role_')) {
-            const uid = key.replace('user_role_', '');
-            const role = localStorage.getItem(key);
-            if (role === 'doctor') {
-              const name = localStorage.getItem(`user_name_${uid}`) || '';
-              const surname = localStorage.getItem(`user_surname_${uid}`) || '';
-              const specialty = localStorage.getItem(`user_specialty_${uid}`) || 'Medicina General';
-              
-              doctorsList.push({
-                uid,
-                name,
-                surname,
-                specialty
-              });
-            }
-          }
-        });
-        
-        setDoctors(doctorsList);
-      };
-
-      loadDoctors();
+    if (newChat) {
+      setShowDoctorList(true);
     }
-  }, [showDoctorList]);
+  }, [newChat]);
 
   if (!user?.uid) {
     return <Navigate to="/login" />;
   }
 
-  if (isLoading) {
+  if (isLoading || doctorsLoading) {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-screen">
@@ -134,12 +103,19 @@ const Mensajes = () => {
   return (
     <Layout>
       <div className="p-4 max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center mb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="mr-4 text-gray-500 hover:text-gray-700"
+            aria-label="Volver"
+          >
+            ←
+          </button>
           <h1 className="text-2xl font-bold">Mensajes</h1>
           {user?.role === 'patient' && !selectedChat && !showDoctorList && (
             <button
               onClick={() => setShowDoctorList(true)}
-              className="bg-softGreen-500 hover:bg-softGreen-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+              className="ml-auto bg-softGreen-500 hover:bg-softGreen-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
             >
               Nuevo Chat con Médico
             </button>
@@ -200,6 +176,7 @@ const Mensajes = () => {
               patientId={selectedChat.patientId}
               doctorId={selectedChat.doctorId}
               chatKey={selectedChat.chatKey}
+              onBack={() => setSelectedChat(null)}
             />
           </div>
         ) : (

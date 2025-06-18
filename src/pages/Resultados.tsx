@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Layout from '@/components/Layout';
@@ -69,7 +68,7 @@ const Resultados = () => {
             <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Enviar Mensaje</h3>
             <p className="text-sm text-gray-600 mb-4">Comunícate con tu médico mediante mensajes directos dentro de la plataforma.</p>
             <button
-              onClick={() => navigate('/mensajes')}
+              onClick={() => navigate('/mensajes', { state: { newChat: true } })}
               className="bg-softGreen-600 text-white px-4 py-2 rounded-lg hover:bg-softGreen-700 transition"
             >
               Ir a Mensajes

@@ -5,6 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from './context/AuthContext';
 import Index from "./pages/Index";
+import Cuestionarios from "./pages/Cuestionarios";
+import HistorialCuestionarios from "./pages/HistorialCuestionarios";
+import ServiciosMedicos from "./pages/ServiciosMedicos";
 import Resultados from "./pages/Resultados";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -28,16 +31,18 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/reserva-citas" element={<ReservaCitasPage />} />
             <Route path="/register" element={<Register />} />
-            // Modifica estas líneas:
             <Route path="/" element={<RoleProtectedRoute allowedRole={'patient'}><Index /></RoleProtectedRoute>} />
             <Route path="/resultados" element={<RoleProtectedRoute allowedRole={'patient'}><Resultados /></RoleProtectedRoute>} />
             <Route path="/doctor-results" element={<RoleProtectedRoute allowedRole={'doctor'}><DoctorResults /></RoleProtectedRoute>} />
-            <Route path="/mensajes" element={<RoleProtectedRoute allowedRole={'doctor'}><Mensajes /></RoleProtectedRoute>} />
+            <Route path="/mensajes" element={<Mensajes />} />
             <Route path="/doctor-dashboard" element={
               <RoleProtectedRoute allowedRole="doctor">
                 <DoctorDashboard />
               </RoleProtectedRoute>
             } />
+            <Route path="/cuestionarios" element={<RoleProtectedRoute allowedRole={'patient'}><Cuestionarios /></RoleProtectedRoute>} />
+            <Route path="/historial" element={<RoleProtectedRoute allowedRole={'patient'}><HistorialCuestionarios /></RoleProtectedRoute>} />
+            <Route path="/servicios-medicos" element={<RoleProtectedRoute allowedRole={'patient'}><ServiciosMedicos /></RoleProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

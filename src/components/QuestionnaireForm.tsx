@@ -309,6 +309,16 @@ const QuestionnaireForm = () => {
       return;
     }
 
+    // Verificar si ya se ha enviado un cuestionario hoy
+    if (hasSubmittedToday) {
+      toast({
+        title: "Límite diario alcanzado",
+        description: "Solo puedes enviar un cuestionario por día. Por favor, vuelve mañana.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Create the questionnaire object with responses
     const newQuestionnaire: Omit<QuestionnaireData, 'id'> = {
       date: new Date().toLocaleDateString('es-ES', {

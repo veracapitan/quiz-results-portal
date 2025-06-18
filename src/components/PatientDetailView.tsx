@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -181,9 +181,6 @@ const PatientDetailView: React.FC<PatientDetailViewProps> = ({ patient, onClose 
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Análisis Detallado del Paciente</DialogTitle>
-          <DialogClose className="absolute right-4 top-4">
-            <X className="h-4 w-4" />
-          </DialogClose>
         </DialogHeader>
 
         <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -196,23 +193,12 @@ const PatientDetailView: React.FC<PatientDetailViewProps> = ({ patient, onClose 
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Próximas Funcionalidades</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600">
-                    Estamos trabajando en nuevas herramientas para ayudarte a gestionar mejor tu salud. ¡Vuelve pronto para ver las novedades!
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Resumen del Paciente</CardTitle>
-                </CardHeader>
-                <CardContent>
+            <Card>
+              <CardHeader>
+                <CardTitle>Resumen del Paciente</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="font-medium">Nombre:</span>
@@ -222,6 +208,8 @@ const PatientDetailView: React.FC<PatientDetailViewProps> = ({ patient, onClose 
                       <span className="font-medium">ID:</span>
                       <span>{patient.id}</span>
                     </div>
+                  </div>
+                  <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="font-medium">Condición:</span>
                       <span>{patient.condition}</span>
@@ -230,6 +218,8 @@ const PatientDetailView: React.FC<PatientDetailViewProps> = ({ patient, onClose 
                       <span className="font-medium">Última actualización:</span>
                       <span>{patient.lastUpdate}</span>
                     </div>
+                  </div>
+                  <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="font-medium">Severidad:</span>
                       <span className={`font-semibold ${
@@ -245,9 +235,9 @@ const PatientDetailView: React.FC<PatientDetailViewProps> = ({ patient, onClose 
                       </span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </CardContent>
+            </Card>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
