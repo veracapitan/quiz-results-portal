@@ -20,7 +20,7 @@ La plataforma está construida utilizando **React** con el apoyo de **Lovable** 
 
 ## IA y Modelo de Clustering
 
-DrData utiliza un modelo de inteligencia artificial complejo que emplea clustering para analizar y clasificar los datos de los pacientes. Este modelo ha sido entrenado con más de 900 pruebas y es capaz de proporcionar recomendaciones precisas basadas en las mejores prácticas médicas recomendadas por entidades como el NIH y la AMIA.
+DrData utiliza un modelo de inteligencia artificial complejo que emplea clustering para analizar y clasificar los datos de los pacientes. Este modelo ha sido entrenado con más de 9000 pruebas y es capaz de proporcionar recomendaciones precisas basadas en las mejores prácticas médicas recomendadas por entidades como el NIH y la AMIA.
 
 ## Ejecutar el Proyecto
 
