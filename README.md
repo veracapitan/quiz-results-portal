@@ -1,69 +1,41 @@
-# Welcome to your Lovable project
+# DrData de Vitalytics
 
-## Project info
+**DrData** es una plataforma inteligente basada en IA diseñada para mejorar el seguimiento y la gestión de la salud de pacientes, especialmente aquellos que sufren de PBC (Prurito Biliar Crónico). Está orientada tanto a médicos como a pacientes, proporcionando herramientas para la comunicación eficiente y el seguimiento de síntomas a través de dispositivos móviles.
 
-**URL**: https://lovable.dev/projects/46b78a31-c3c9-47a0-b31c-112d753c1d40
+## Características
 
-## How can I edit this code?
+* **Seguimiento de síntomas**: Los pacientes pueden responder cuestionarios diarios sobre sus síntomas, como el picor, y visualizar sus datos recopilados a través de dispositivos móviles como pulseras o anillos.
 
-There are several ways of editing your application.
+* **Cuantificación objetiva del picor**: Utiliza una escala basada en modelos de clustering combinados y recomendados por entidades médicas como el NIH y la AMIA. Los médicos pueden evaluar y cuantificar el picor de los pacientes de manera precisa.
 
-**Use Lovable**
+* **Historial médico**: Los médicos pueden consultar el historial médico de los pacientes y realizar un seguimiento continuo a lo largo del tiempo.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/46b78a31-c3c9-47a0-b31c-112d753c1d40) and start prompting.
+* **Citas y comunicación**: Los pacientes pueden solicitar citas con sus médicos y comunicarse con ellos a través de un chat integrado en la plataforma.
 
-Changes made via Lovable will be committed automatically to this repo.
+* **Plataforma multiplataforma**: Compatible con diferentes dispositivos médicos y accesible desde múltiples plataformas, con interfaces visuales intuitivas tanto para médicos como para pacientes.
 
-**Use your preferred IDE**
+## Tecnología
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+La plataforma está construida utilizando **React** con el apoyo de **Lovable** para su desarrollo.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## IA y Modelo de Clustering
 
-Follow these steps:
+DrData utiliza un modelo de inteligencia artificial complejo que emplea clustering para analizar y clasificar los datos de los pacientes. Este modelo ha sido entrenado con más de 900 pruebas y es capaz de proporcionar recomendaciones precisas basadas en las mejores prácticas médicas recomendadas por entidades como el NIH y la AMIA.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Ejecutar el Proyecto
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Para ejecutar el proyecto localmente, asegúrate de tener **Node.js** y **npm** instalados. Luego, en la raíz del proyecto, ejecuta el siguiente comando:
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Esto iniciará el servidor de desarrollo y podrás acceder a la plataforma desde tu navegador.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Miembros del Proyecto
 
-**Use GitHub Codespaces**
+* **Arnau Pons Cardet**
+* **Tomás Serra Arnau**
+* **Saül Vera Capitán**
+* **Soukaina Mahboub Mehboub**
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/46b78a31-c3c9-47a0-b31c-112d753c1d40) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
