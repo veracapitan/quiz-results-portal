@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Button } from './ui/button';
 import { useToast } from '../hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useDoctors } from '../hooks/useDoctors';
 
 interface Doctor {
   id: string;
@@ -23,26 +24,9 @@ const AppointmentFormWithCalendar: React.FC<AppointmentFormWithCalendarProps> = 
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [time, setTime] = useState<string>('');
   const [selectedDoctor, setSelectedDoctor] = useState<string>('');
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const { doctors, isLoading } = useDoctors();
   
-  // Cargar doctores desde localStorage
-  useEffect(() => {
-    const storedDoctors = JSON.parse(localStorage.getItem('doctors') || '[]');
-    if (storedDoctors.length === 0) {
-      // Si no hay doctores, agregar algunos de ejemplo
-      const exampleDoctors = [
-        { id: '1', name: 'Dr. García', specialty: 'Dermatología' },
-        { id: '2', name: 'Dra. Martínez', specialty: 'Alergología' },
-        { id: '3', name: 'Dr. Rodríguez', specialty: 'Dermatología Pediátrica' }
-      ];
-      localStorage.setItem('doctors', JSON.stringify(exampleDoctors));
-      setDoctors(exampleDoctors);
-    } else {
-      setDoctors(storedDoctors);
-    }
-  }, []);
-
   // Generar horarios disponibles según el día seleccionado
   useEffect(() => {
     if (!date || !selectedDoctor) {
@@ -102,14 +86,14 @@ const AppointmentFormWithCalendar: React.FC<AppointmentFormWithCalendarProps> = 
     appointmentDate.setHours(hours, minutes, 0, 0);
     
     // Encontrar el doctor seleccionado para mostrar su nombre
-    const selectedDoctorData = doctors.find(doc => doc.id === selectedDoctor);
+    const selectedDoctorData = doctors.find(doc => doc.uid === selectedDoctor);
     
     // Crear la cita
     const newAppointment = {
       id: Date.now().toString(),
       patientId,
       doctorId: selectedDoctor,
-      doctorName: selectedDoctorData?.name || 'Doctor',
+      doctorName: selectedDoctorData?.name + ' ' + (selectedDoctorData?.surname || ''),
       doctorSpecialty: selectedDoctorData?.specialty || 'Especialidad',
       date: appointmentDate,
       status: 'pending',
@@ -149,14 +133,15 @@ const AppointmentFormWithCalendar: React.FC<AppointmentFormWithCalendarProps> = 
           <Select
             value={selectedDoctor}
             onValueChange={setSelectedDoctor}
+            disabled={isLoading}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Selecciona un médico" />
             </SelectTrigger>
             <SelectContent>
               {doctors.map((doctor) => (
-                <SelectItem key={doctor.id} value={doctor.id}>
-                  {doctor.name} - {doctor.specialty}
+                <SelectItem key={doctor.uid} value={doctor.uid}>
+                  {doctor.name} {doctor.surname} - {doctor.specialty}
                 </SelectItem>
               ))}
             </SelectContent>

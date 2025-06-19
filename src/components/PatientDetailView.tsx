@@ -440,39 +440,48 @@ const PatientDetailView: React.FC<PatientDetailViewProps> = ({ patient, onClose 
             <Card>
               <CardHeader>
                 <CardTitle>Historial Clínico</CardTitle>
+                <CardDescription>Historia detallada del paciente y evolución del tratamiento</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-lg font-medium mb-2">Historial de Enfermedades de la Piel</h3>
-                    <ul className="list-disc pl-5 space-y-1">
-                      {skinDiseaseHistory.map((item, index) => (
-                        <li key={index}>{item}</li>
-                      ))}
-                    </ul>
+                    <h3 className="text-lg font-medium mb-3">Historial de Enfermedades de la Piel</h3>
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <ul className="list-disc pl-5 space-y-2">
+                        {skinDiseaseHistory.map((item, index) => (
+                          <li key={index} className="text-gray-700">{item}</li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
                   
                   <div>
-                    <h3 className="text-lg font-medium mb-2">Tratamientos Previos</h3>
-                    <ul className="list-disc pl-5 space-y-1">
-                      {previousTreatments.map((item, index) => (
-                        <li key={index}>{item}</li>
-                      ))}
-                    </ul>
+                    <h3 className="text-lg font-medium mb-3">Tratamientos Previos</h3>
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <ul className="list-disc pl-5 space-y-2">
+                        {previousTreatments.map((item, index) => (
+                          <li key={index} className="text-gray-700">{item}</li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
                   
                   <div>
-                    <h3 className="text-lg font-medium mb-2">Medicación Actual</h3>
-                    <ul className="list-disc pl-5 space-y-1">
-                      {currentMedication.map((item, index) => (
-                        <li key={index}>{item}</li>
-                      ))}
-                    </ul>
+                    <h3 className="text-lg font-medium mb-3">Medicación Actual</h3>
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <ul className="list-disc pl-5 space-y-2">
+                        {currentMedication.map((item, index) => (
+                          <li key={index} className="text-gray-700">{item}</li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
                   
                   <div>
-                    <h3 className="text-lg font-medium mb-2">Respuesta al Tratamiento</h3>
-                    <p>{treatmentResponse}</p>
+                    <h3 className="text-lg font-medium mb-3">Respuesta al Tratamiento</h3>
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <p className="text-gray-700">{treatmentResponse}</p>
+                    </div>
                   </div>
                 </div>
               </CardContent>

@@ -96,7 +96,7 @@ const QuestionnaireForm = () => {
   // Para saber si el usuario ya envió cuestionario hoy
   const [hasSubmittedToday, setHasSubmittedToday] = useState(false);
 
-  // Revisar en la base de datos si el usuario ya envió un cuestionario hoy
+  /*// Revisar en la base de datos si el usuario ya envió un cuestionario hoy
   useEffect(() => {
     const checkSubmission = async () => {
       if (user) {
@@ -144,7 +144,7 @@ const QuestionnaireForm = () => {
     };
     
     checkSubmission();
-  }, [user]);
+  }, [user]); */
 
   // Función para resetear el formulario
   const resetForm = () => {
@@ -310,7 +310,7 @@ const QuestionnaireForm = () => {
     }
 
     // Verificar si ya se ha enviado un cuestionario hoy
-    if (hasSubmittedToday) {
+   /* if (hasSubmittedToday) {
       toast({
         title: "Límite diario alcanzado",
         description: "Solo puedes enviar un cuestionario por día. Por favor, vuelve mañana.",
@@ -318,14 +318,10 @@ const QuestionnaireForm = () => {
       });
       return;
     }
-
+*/
     // Create the questionnaire object with responses
     const newQuestionnaire: Omit<QuestionnaireData, 'id'> = {
-      date: new Date().toLocaleDateString('es-ES', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      }),
+      date: new Date().toISOString(),
       intensity,
       selectedAreas,
       activitiesImpact,

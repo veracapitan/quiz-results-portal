@@ -73,18 +73,18 @@ const HistorialCuestionarios = () => {
   }
 
   // Calculate averages and prepare chart data
-  const intensityData = patientData.slice(-5).map(q => ({
-    name: new Date(q.date).toLocaleDateString('es-ES', { weekday: 'short' }),
+  const intensityData = patientData.slice(-5).map((q, idx, arr) => ({
+    name: `Cuest. #${patientData.length - (arr.length - 1 - idx)}`,
     value: q.intensity
   }));
 
-  const treatmentData = patientData.slice(-5).map(q => ({
-    name: new Date(q.date).toLocaleDateString('es-ES', { weekday: 'short' }),
+  const treatmentData = patientData.slice(-5).map((q, idx, arr) => ({
+    name: `Cuest. #${patientData.length - (arr.length - 1 - idx)}`,
     value: q.treatmentEfficacy
   }));
 
-  const activityImpactData = patientData.slice(-5).map(q => ({
-    name: new Date(q.date).toLocaleDateString('es-ES', { weekday: 'short' }),
+  const activityImpactData = patientData.slice(-5).map((q, idx, arr) => ({
+    name: `Cuest. #${patientData.length - (arr.length - 1 - idx)}`,
     leisureSocial: q.activitiesImpact.leisureSocial === 'high' ? 3 : q.activitiesImpact.leisureSocial === 'medium' ? 2 : 1,
     houseworkErrands: q.activitiesImpact.houseworkErrands === 'high' ? 3 : q.activitiesImpact.houseworkErrands === 'medium' ? 2 : 1,
     workSchool: q.activitiesImpact.workSchool === 'high' ? 3 : q.activitiesImpact.workSchool === 'medium' ? 2 : 1
@@ -239,14 +239,6 @@ const HistorialCuestionarios = () => {
                     <div className="flex items-center space-x-4">
                       <div className="text-2xl font-bold text-softGreen-600">#{patientData.length - index}</div>
                       <div>
-                        <p className="font-medium">
-                          {new Date(questionnaire.date).toLocaleDateString('es-ES', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
-                        </p>
                         <p className="text-sm text-gray-600">
                           Intensidad: {questionnaire.intensity}/10 | Eficacia: {questionnaire.treatmentEfficacy}/10
                         </p>

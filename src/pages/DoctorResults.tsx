@@ -50,101 +50,147 @@ interface PatientSummary {
 
 const mockPatients: PatientSummary[] = [
   {
-    id: "1747358548054",
-    name: "Juan Pérez",
-    lastUpdate: "2023-05-15",
-    condition: "Intensidad de picor: 7/10",
+    id: '1',
+    name: 'Ana García',
+    lastUpdate: '2024-03-15',
+    condition: 'Dermatitis Atópica',
     severity: 70,
-    date: '',
-    userId: '',
+    date: '2024-03-15',
+    userId: '1',
     behavioralData: {
-      itchDuration: '',
-      scratchSpeed: 0,
-      itchIntensity: 0,
-      itchFrequency: 0,
-      skinToNailVibrations: ''
+      itchDuration: '2-4 horas',
+      scratchSpeed: 75,
+      itchIntensity: 7,
+      itchFrequency: 8,
+      skinToNailVibrations: 'Moderadas'
     },
     sleepData: {
-      posturalChanges: 0,
-      interruptions: 0,
-      qualityScore: 0
+      posturalChanges: 12,
+      interruptions: 4,
+      qualityScore: 6
     },
     physiologicalData: {
-      heartRate: 0,
-      heartRateVariability: 0,
-      skinConductance: 0,
-      skinTemperature: 0
+      heartRate: 72,
+      heartRateVariability: 65,
+      skinConductance: 8.3,
+      skinTemperature: 32.5
     },
     clinicalData: {
-      skinDiseaseHistory: [],
-      previousTreatments: [],
-      currentMedication: [],
-      treatmentResponse: ''
+      skinDiseaseHistory: [
+        'Diagnóstico inicial de Dermatitis Atópica en 2018',
+        'Episodio severo de eccema en verano 2020',
+        'Brote alérgico por contacto con níquel en 2021',
+        'Mejoría significativa tras cambio de tratamiento en 2022'
+      ],
+      previousTreatments: [
+        'Hidrocortisona 1% (2018-2020)',
+        'Tacrolimus 0.1% (2020-2021)',
+        'Fototerapia UVB (2021)',
+        'Dupixent (2022-presente)'
+      ],
+      currentMedication: [
+        'Dupixent 300mg cada 2 semanas',
+        'Cetirizina 10mg diarios',
+        'Crema hidratante CeraVe 2 veces al día',
+        'Betametasona 0.05% para brotes'
+      ],
+      treatmentResponse: 'Buena respuesta a Dupixent con reducción significativa de brotes. Ocasionalmente requiere corticoides tópicos para exacerbaciones.'
     }
   },
   {
-    id: "174734948054",
-    name: "María García",
-    lastUpdate: "2023-05-14",
-    condition: "Intensidad de picor: 4/10",
-    severity: 40,
-    date: '',
-    userId: '',
+    id: '2',
+    name: 'Carlos Martínez',
+    lastUpdate: '2024-03-14',
+    condition: 'Psoriasis',
+    severity: 85,
+    date: '2024-03-14',
+    userId: '2',
     behavioralData: {
-      itchDuration: '',
-      scratchSpeed: 0,
-      itchIntensity: 0,
-      itchFrequency: 0,
-      skinToNailVibrations: ''
+      itchDuration: '4-6 horas',
+      scratchSpeed: 85,
+      itchIntensity: 8,
+      itchFrequency: 9,
+      skinToNailVibrations: 'Altas'
     },
     sleepData: {
-      posturalChanges: 0,
-      interruptions: 0,
-      qualityScore: 0
+      posturalChanges: 15,
+      interruptions: 6,
+      qualityScore: 4
     },
     physiologicalData: {
-      heartRate: 0,
-      heartRateVariability: 0,
-      skinConductance: 0,
-      skinTemperature: 0
+      heartRate: 78,
+      heartRateVariability: 58,
+      skinConductance: 9.1,
+      skinTemperature: 33.2
     },
     clinicalData: {
-      skinDiseaseHistory: [],
-      previousTreatments: [],
-      currentMedication: [],
-      treatmentResponse: ''
+      skinDiseaseHistory: [
+        'Diagnóstico de Psoriasis en placas en 2015',
+        'Artritis psoriásica diagnosticada en 2017',
+        'Hospitalización por brote severo en 2019',
+        'Remisión parcial alcanzada en 2023'
+      ],
+      previousTreatments: [
+        'Metotrexato oral (2015-2017)',
+        'Ciclosporina (2017-2019)',
+        'Fototerapia PUVA (2019)',
+        'Humira (2020-2022)'
+      ],
+      currentMedication: [
+        'Skyrizi 150mg cada 12 semanas',
+        'Naproxeno 500mg para dolor articular',
+        'Ungüento de calcipotriol/betametasona',
+        'Crema hidratante específica para psoriasis'
+      ],
+      treatmentResponse: 'Excelente respuesta a Skyrizi con remisión del 90% de las placas. Artritis psoriásica bien controlada con tratamiento actual.'
     }
   },
   {
-    id: "1343741548054",
-    name: "Carlos López",
-    lastUpdate: "2023-05-13",    condition: "Intesidad de picor: 6/10",
+    id: '3',
+    name: 'María Sánchez',
+    lastUpdate: '2024-03-13',
+    condition: 'Rosácea',
     severity: 60,
-    date: '',
-    userId: '',
+    date: '2024-03-13',
+    userId: '3',
     behavioralData: {
-      itchDuration: '',
-      scratchSpeed: 0,
-      itchIntensity: 0,
-      itchFrequency: 0,
-      skinToNailVibrations: ''
+      itchDuration: '1-2 horas',
+      scratchSpeed: 45,
+      itchIntensity: 5,
+      itchFrequency: 6,
+      skinToNailVibrations: 'Bajas'
     },
     sleepData: {
-      posturalChanges: 0,
-      interruptions: 0,
-      qualityScore: 0
+      posturalChanges: 8,
+      interruptions: 2,
+      qualityScore: 7
     },
     physiologicalData: {
-      heartRate: 0,
-      heartRateVariability: 0,
-      skinConductance: 0,
-      skinTemperature: 0
+      heartRate: 68,
+      heartRateVariability: 72,
+      skinConductance: 7.5,
+      skinTemperature: 31.8
     },
     clinicalData: {
-      skinDiseaseHistory: [],
-      previousTreatments: [],
-      currentMedication: [],
-      treatmentResponse: ''
+      skinDiseaseHistory: [
+        'Diagnóstico de Rosácea tipo 2 en 2019',
+        'Episodios de enrojecimiento severo en 2020',
+        'Desarrollo de telangiectasias en 2021',
+        'Mejoría notable con láser vascular en 2022'
+      ],
+      previousTreatments: [
+        'Metronidazol tópico 0.75% (2019-2020)',
+        'Doxiciclina oral (2020)',
+        'Ácido azelaico 15% (2021)',
+        'Tratamiento con láser vascular (2022)'
+      ],
+      currentMedication: [
+        'Ivermectina crema 1% diaria',
+        'Brimonidina gel 0.33% para enrojecimiento',
+        'Protector solar mineral SPF 50',
+        'Limpiador suave sin jabón'
+      ],
+      treatmentResponse: 'Respuesta favorable a la combinación de tratamientos tópicos. Control adecuado de brotes con manejo de factores desencadenantes.'
     }
   }
 ];
@@ -272,69 +318,40 @@ const getRegisteredPatientsFromLocalStorage = (): PatientSummary[] => {
             
             console.log(`Cuestionarios para ${user.name}:`, patientQuestionnaires.length);
             
-            if (latestQuestionnaire && latestQuestionnaire.intensity !== undefined) {
+            if (latestQuestionnaire) {
+              const formattedDate = new Date(latestQuestionnaire.date).toLocaleDateString('es-ES', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+              });
+
               patients.push({
                 id: user.uid,
                 name: `${user.name} ${user.surname}`.trim(),
-                lastUpdate: latestQuestionnaire.date || new Date().toISOString().split('T')[0],
+                lastUpdate: formattedDate,
                 condition: `Intensidad del picor: ${latestQuestionnaire.intensity}/10`,
                 severity: latestQuestionnaire.intensity * 10,
-                date: latestQuestionnaire.date,
+                date: formattedDate,
                 userId: user.uid,
-                behavioralData: {
+                behavioralData: latestQuestionnaire.behavioralData || {
                   itchDuration: '',
                   scratchSpeed: 0,
                   itchIntensity: 0,
                   itchFrequency: 0,
                   skinToNailVibrations: ''
                 },
-                sleepData: {
+                sleepData: latestQuestionnaire.sleepData || {
                   posturalChanges: 0,
                   interruptions: 0,
                   qualityScore: 0
                 },
-                physiologicalData: {
+                physiologicalData: latestQuestionnaire.physiologicalData || {
                   heartRate: 0,
                   heartRateVariability: 0,
                   skinConductance: 0,
                   skinTemperature: 0
                 },
-                clinicalData: {
-                  skinDiseaseHistory: [],
-                  previousTreatments: [],
-                  currentMedication: [],
-                  treatmentResponse: ''
-                }
-              });
-            } else {
-              // Paciente sin cuestionarios
-              patients.push({
-                id: user.uid,
-                name: `${user.name} ${user.surname}`.trim(),
-                lastUpdate: new Date().toISOString().split('T')[0],
-                condition: 'Pendiente de evaluación',
-                severity: 50,
-                date: '',
-                userId: user.uid,
-                behavioralData: {
-                  itchDuration: '',
-                  scratchSpeed: 0,
-                  itchIntensity: 0,
-                  itchFrequency: 0,
-                  skinToNailVibrations: ''
-                },
-                sleepData: {
-                  posturalChanges: 0,
-                  interruptions: 0,
-                  qualityScore: 0
-                },
-                physiologicalData: {
-                  heartRate: 0,
-                  heartRateVariability: 0,
-                  skinConductance: 0,
-                  skinTemperature: 0
-                },
-                clinicalData: {
+                clinicalData: latestQuestionnaire.clinicalData || {
                   skinDiseaseHistory: [],
                   previousTreatments: [],
                   currentMedication: [],
@@ -345,7 +362,7 @@ const getRegisteredPatientsFromLocalStorage = (): PatientSummary[] => {
           }
         });
       } catch (error) {
-        console.error('Error parsing vitalytics-users:', error);
+        console.error('Error procesando usuarios:', error);
       }
     }
 
