@@ -8,6 +8,27 @@ const DoctorDashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('appointments');
 
+  const predefinedUsers = [
+    { id: 'user1', name: 'John Doe', value: 'Value 1' },
+    { id: 'user2', name: 'Jane Smith', value: 'Value 2' },
+    { id: 'user3', name: 'Alice Johnson', value: 'Value 3' },
+    { id: 'user4', name: 'Carlos Martinez', value: 'Value 4' },
+    { id: 'user5', name: 'Maria Lopez', value: 'Value 5' },
+    { id: 'user6', name: 'Luis Fernandez', value: 'Value 6' }
+  ];
+
+  // Render predefined users
+  <div className="predefined-users">
+    <h2>Predefined Users</h2>
+    <ul>
+      {predefinedUsers.map(user => (
+        <li key={user.id}>
+          <span>{user.name}</span>: <span>{user.value}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+
   return (
     <Layout>
       <div className="space-y-6">

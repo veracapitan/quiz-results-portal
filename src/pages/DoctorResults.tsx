@@ -468,10 +468,13 @@ const DoctorResults = () => {
     const loadPatients = async () => {
       try {
         const registeredPatientsData = await getRegisteredPatients();
-        setAllPatients(registeredPatientsData);
+        // Unir mockPatients y pacientes reales, eliminando duplicados por id
+        const all = [...mockPatients, ...registeredPatientsData];
+        const uniquePatients = all.filter((p, idx, arr) => arr.findIndex(x => x.id === p.id) === idx && p.name && p.name.trim() !== '' && p.id && p.id.trim() !== '');
+        setAllPatients(uniquePatients);
       } catch (error) {
         console.error('Error loading patients:', error);
-        setAllPatients([]);
+        setAllPatients(mockPatients);
       }
     };
     loadPatients();

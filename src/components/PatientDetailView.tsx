@@ -157,24 +157,10 @@ const PatientDetailView: React.FC<PatientDetailViewProps> = ({ patient, onClose 
   };
 
   // Datos para el historial clínico
-  const skinDiseaseHistory = [
-    'Dermatitis Atópica (diagnosticada en 2015)',
-    'Eccema de Contacto (episodios ocasionales desde 2018)',
-    'Xerosis Cutánea (condición crónica)'
-  ];
-
-  const previousTreatments = [
-    'Corticosteroides tópicos de potencia media (2015-2018)',
-    'Tacrolimus tópico (2018-2020)',
-    'Fototerapia UVB (10 sesiones en 2019)',
-    'Antihistamínicos orales (uso intermitente)'
-  ];
-
-  const currentMedication = [
-    'Betametasona 0.05% crema (aplicación diaria en zonas afectadas)',
-    'Cetirizina 10mg (1 comprimido por la noche)',
-    'Emolientes (Cetaphil, 3 veces al día)'
-  ];
+  const skinDiseaseHistory = patient.clinicalData?.skinDiseaseHistory || ['Sin datos'];
+  const previousTreatments = patient.clinicalData?.previousTreatments || ['Sin datos'];
+  const currentMedication = patient.clinicalData?.currentMedication || ['Sin datos'];
+  const treatmentResponse = patient.clinicalData?.treatmentResponse || 'Sin datos';
 
   return (
     <Dialog open={true} onOpenChange={() => onClose()}>
@@ -486,7 +472,7 @@ const PatientDetailView: React.FC<PatientDetailViewProps> = ({ patient, onClose 
                   
                   <div>
                     <h3 className="text-lg font-medium mb-2">Respuesta al Tratamiento</h3>
-                    <p>El paciente ha mostrado una respuesta moderada a los corticosteroides tópicos, con mejora significativa en las áreas tratadas. Los antihistamínicos han sido efectivos para controlar el prurito nocturno, mejorando la calidad del sueño. Se recomienda continuar con el régimen actual y reevaluar en 4 semanas.</p>
+                    <p>{treatmentResponse}</p>
                   </div>
                 </div>
               </CardContent>

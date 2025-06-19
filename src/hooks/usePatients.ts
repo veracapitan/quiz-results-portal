@@ -99,6 +99,30 @@ export const usePatients = () => {
             name: 'Pedro',
             surname: 'López',
             email: 'pedro.lopez@email.com'
+          },
+          {
+            uid: 'patient-5',
+            name: 'Sofía',
+            surname: 'Fernández',
+            email: 'sofia.fernandez@email.com'
+          },
+          {
+            uid: 'patient-6',
+            name: 'Miguel',
+            surname: 'Santos',
+            email: 'miguel.santos@email.com'
+          },
+          {
+            uid: 'patient-7',
+            name: 'Lucía',
+            surname: 'Ramírez',
+            email: 'lucia.ramirez@email.com'
+          },
+          {
+            uid: 'patient-8',
+            name: 'Javier',
+            surname: 'Moreno',
+            email: 'javier.moreno@email.com'
           }
         ];
         
